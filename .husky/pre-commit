@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+
+# Run linting
+echo "📝 Running ESLint..."
+pnpm lint
+
+# Run Prettier check
+echo "🎨 Running Prettier check..."
+pnpm format:check
+
+# Run TypeScript type check
+echo "🔧 Running TypeScript type check..."
+pnpm type-check
+
+# Run tests
+echo "🧪 Running tests..."
+pnpm test
+
+echo "✅ Pre-commit checks passed!"

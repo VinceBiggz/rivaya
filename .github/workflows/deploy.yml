@@ -1,0 +1,283 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '18'
+  PNPM_VERSION: '8'
+
+jobs:
+  deploy-staging:
+    if: github.ref == 'refs/heads/develop' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build applications
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.STAGING_API_URL }}
+
+      - name: Deploy to Vercel (Web)
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
+          working-directory: ./apps/web
+          vercel-args: '--prod'
+
+      - name: Deploy to Railway (API)
+        run: |
+          curl -fsSL https://railway.app/install.sh | sh
+          railway login --token ${{ secrets.RAILWAY_TOKEN }}
+          railway up --service ${{ secrets.RAILWAY_API_SERVICE }}
+
+      - name: Deploy to Supabase (Database)
+        run: |
+          curl -fsSL https://supabase.com/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          supabase link --project-ref ${{ secrets.STAGING_SUPABASE_PROJECT_REF }}
+          supabase db push
+
+      - name: Run smoke tests
+        run: pnpm test:smoke
+        env:
+          TEST_URL: ${{ secrets.STAGING_WEB_URL }}
+          TEST_API_URL: ${{ secrets.STAGING_API_URL }}
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"Staging deployment successful for RIVAYA"}' \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify deployment failure
+        if: failure()
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"Staging deployment failed for RIVAYA"}' \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  deploy-production:
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    runs-on: ubuntu-latest
+    environment: production
+    needs: deploy-staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build applications
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.PRODUCTION_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PRODUCTION_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.PRODUCTION_API_URL }}
+
+      - name: Deploy to Vercel (Web)
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
+          working-directory: ./apps/web
+          vercel-args: '--prod'
+
+      - name: Deploy to Railway (API)
+        run: |
+          curl -fsSL https://railway.app/install.sh | sh
+          railway login --token ${{ secrets.RAILWAY_TOKEN }}
+          railway up --service ${{ secrets.RAILWAY_API_SERVICE }}
+
+      - name: Deploy to Supabase (Database)
+        run: |
+          curl -fsSL https://supabase.com/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          supabase link --project-ref ${{ secrets.PRODUCTION_SUPABASE_PROJECT_REF }}
+          supabase db push
+
+      - name: Run smoke tests
+        run: pnpm test:smoke
+        env:
+          TEST_URL: ${{ secrets.PRODUCTION_WEB_URL }}
+          TEST_API_URL: ${{ secrets.PRODUCTION_API_URL }}
+
+      - name: Create GitHub release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.run_number }}
+          release_name: Release v${{ github.run_number }}
+          body: |
+            Production deployment for RIVAYA v${{ github.run_number }}
+            
+            Changes in this release:
+            ${{ github.event.head_commit.message }}
+          draft: false
+          prerelease: false
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"Production deployment successful for RIVAYA v${{ github.run_number }}"}' \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify deployment failure
+        if: failure()
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"Production deployment failed for RIVAYA"}' \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  deploy-mobile:
+    if: github.ref == 'refs/heads/main'
+    runs-on: macos-latest
+    environment: production
+    needs: deploy-production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Expo CLI
+        run: npm install -g @expo/cli
+
+      - name: Install Expo dependencies
+        run: |
+          cd apps/mobile
+          pnpm install
+
+      - name: Build mobile app
+        run: |
+          cd apps/mobile
+          pnpm build
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.PRODUCTION_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PRODUCTION_SUPABASE_ANON_KEY }}
+          EXPO_PUBLIC_API_URL: ${{ secrets.PRODUCTION_API_URL }}
+
+      - name: Submit to App Store
+        run: |
+          cd apps/mobile
+          pnpm submit:ios
+        env:
+          EXPO_APPLE_ID: ${{ secrets.EXPO_APPLE_ID }}
+          EXPO_APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.EXPO_APPLE_APP_SPECIFIC_PASSWORD }}
+
+      - name: Submit to Google Play Store
+        run: |
+          cd apps/mobile
+          pnpm submit:android
+        env:
+          EXPO_GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.EXPO_GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+      - name: Notify mobile deployment success
+        if: success()
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"Mobile app deployment successful for RIVAYA v${{ github.run_number }}"}' \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify mobile deployment failure
+        if: failure()
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"Mobile app deployment failed for RIVAYA"}' \
+            ${{ secrets.SLACK_WEBHOOK_URL }}

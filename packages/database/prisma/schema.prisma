@@ -1,0 +1,346 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User profiles and authentication
+model Profile {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  phone         String?  @unique
+  firstName     String
+  lastName      String
+  avatar        String?
+  bio           String?
+  dateOfBirth   DateTime?
+  gender        String?
+  location      String?
+  timezone      String   @default("UTC")
+  language      String   @default("en")
+  isVerified    Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  userPreferences UserPreferences?
+  userSessions    UserSession[]
+  groupMembers    GroupMember[]
+  groupInvitations GroupInvitation[]
+  events          Event[]
+  eventRSVPs      EventRSVP[]
+  payments        Payment[]
+  memberContributions MemberContribution[]
+  mediaAssets    MediaAsset[]
+  mediaComments  MediaComment[]
+  mediaReactions MediaReaction[]
+  meetingMinutes MeetingMinutes[]
+
+  @@map("profiles")
+}
+
+model UserPreferences {
+  id                String  @id @default(cuid())
+  profileId         String  @unique
+  emailNotifications Boolean @default(true)
+  pushNotifications Boolean @default(true)
+  smsNotifications  Boolean @default(false)
+  privacyLevel      String  @default("friends") // public, friends, private
+  theme             String  @default("system") // light, dark, system
+  language          String  @default("en")
+  timezone          String  @default("UTC")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model UserSession {
+  id        String   @id @default(cuid())
+  profileId String
+  token     String   @unique
+  device    String?
+  ipAddress String?
+  userAgent String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  // Relations
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
+}
+
+// Groups and memberships
+model Group {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  type        String   @default("social") // social, business, family, community
+  category    String?  // sports, music, business, etc.
+  avatar      String?
+  banner      String?
+  isPublic    Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  maxMembers  Int?
+  location    String?
+  website     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  members           GroupMember[]
+  contributionTiers ContributionTier[]
+  households        Household[]
+  events            Event[]
+  mediaAssets       MediaAsset[]
+  invitations       GroupInvitation[]
+
+  @@map("groups")
+}
+
+model GroupMember {
+  id        String   @id @default(cuid())
+  groupId   String
+  profileId String
+  role      String   @default("member") // admin, moderator, member
+  joinedAt  DateTime @default(now())
+  isActive  Boolean  @default(true)
+
+  // Relations
+  group   Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, profileId])
+  @@map("group_members")
+}
+
+model GroupInvitation {
+  id        String   @id @default(cuid())
+  groupId   String
+  profileId String
+  invitedBy String
+  status    String   @default("pending") // pending, accepted, declined, expired
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  // Relations
+  group   Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("group_invitations")
+}
+
+// Contribution and payment system
+model ContributionTier {
+  id          String   @id @default(cuid())
+  groupId     String
+  name        String
+  description String?
+  amount      Decimal
+  currency    String   @default("USD")
+  interval    String   @default("monthly") // one-time, monthly, yearly
+  benefits    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@map("contribution_tiers")
+}
+
+model Household {
+  id          String   @id @default(cuid())
+  groupId     String
+  name        String
+  description String?
+  maxMembers  Int?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@map("households")
+}
+
+model MemberContribution {
+  id                 String   @id @default(cuid())
+  profileId          String
+  contributionTierId String?
+  groupId            String
+  amount             Decimal
+  currency           String   @default("USD")
+  status             String   @default("pending") // pending, completed, failed, refunded
+  paymentMethod      String?
+  paymentGateway     String?
+  gatewayTransactionId String?
+  metadata           Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  profile           Profile           @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  contributionTier  ContributionTier? @relation(fields: [contributionTierId], references: [id])
+  group             Group             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@map("member_contributions")
+}
+
+model Payment {
+  id                  String   @id @default(cuid())
+  profileId           String
+  amount              Decimal
+  currency            String   @default("USD")
+  status              String   @default("pending") // pending, completed, failed, refunded
+  paymentMethod       String?
+  paymentGateway      String?
+  gatewayTransactionId String?
+  description         String?
+  metadata            Json?
+  refundedAt          DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+// Events and meetings
+model Event {
+  id          String   @id @default(cuid())
+  groupId     String
+  createdBy   String
+  title       String
+  description String?
+  type        String   @default("meeting") // meeting, social, business, other
+  category    String?
+  startDate   DateTime
+  endDate     DateTime
+  location    String?
+  isOnline    Boolean  @default(false)
+  meetingUrl  String?
+  maxAttendees Int?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  group         Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  profile       Profile       @relation(fields: [createdBy], references: [id])
+  rsvps         EventRSVP[]
+  meetingMinutes MeetingMinutes[]
+
+  @@map("events")
+}
+
+model EventRSVP {
+  id        String   @id @default(cuid())
+  eventId   String
+  profileId String
+  status    String   @default("pending") // pending, attending, declined, maybe
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  event   Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, profileId])
+  @@map("event_rsvps")
+}
+
+model MeetingMinutes {
+  id          String   @id @default(cuid())
+  eventId     String
+  createdBy   String
+  title       String
+  content     String
+  attendees   String[]
+  decisions   Json?
+  actionItems Json?
+  attachments String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  event   Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  profile Profile @relation(fields: [createdBy], references: [id])
+
+  @@map("meeting_minutes")
+}
+
+// Media and content
+model MediaAsset {
+  id          String   @id @default(cuid())
+  groupId     String
+  uploadedBy  String
+  type        String   // image, video, audio, document
+  filename    String
+  originalName String
+  mimeType    String
+  size        Int
+  url         String
+  thumbnail   String?
+  metadata    Json?
+  privacy     String   @default("group") // public, group, private
+  tags        String[]
+  aiTags      Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  group    Group          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  profile  Profile        @relation(fields: [uploadedBy], references: [id])
+  comments MediaComment[]
+  reactions MediaReaction[]
+
+  @@map("media_assets")
+}
+
+model MediaComment {
+  id         String   @id @default(cuid())
+  mediaId    String
+  profileId  String
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  media   MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  profile Profile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("media_comments")
+}
+
+model MediaReaction {
+  id        String   @id @default(cuid())
+  mediaId   String
+  profileId String
+  type      String   // like, love, laugh, wow, sad, angry
+  createdAt DateTime @default(now())
+
+  // Relations
+  media   MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  profile Profile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([mediaId, profileId])
+  @@map("media_reactions")
+}

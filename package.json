@@ -1,0 +1,64 @@
+{
+  "name": "rivaya",
+  "version": "1.0.0",
+  "description": "RIVAYA - AI-Powered Group Management Platform",
+  "author": "Vincent Wachira <vincent@rivaya.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VinceBiggz/rivaya.git"
+  },
+  "homepage": "https://rivaya.com",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "test:coverage": "turbo run test:coverage",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "typecheck": "turbo run typecheck",
+    "e2e": "turbo run e2e",
+    "clean": "turbo run clean",
+    "db:generate": "turbo run db:generate",
+    "db:push": "turbo run db:push",
+    "db:migrate": "turbo run db:migrate",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json,js,jsx}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,json,js,jsx}\"",
+    "prepare": "husky install",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "turbo run build && changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.1",
+    "@commitlint/cli": "^18.4.3",
+    "@commitlint/config-conventional": "^18.4.3",
+    "@turbo/gen": "^1.10.12",
+    "@types/node": "^20.9.0",
+    "eslint": "^8.54.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.1.0",
+    "turbo": "^1.10.12",
+    "typescript": "^5.2.2"
+  },
+  "packageManager": "pnpm@8.9.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{md,json}": [
+      "prettier --write"
+    ]
+  }
+}
