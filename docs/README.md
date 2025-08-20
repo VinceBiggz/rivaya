@@ -6,6 +6,7 @@ Welcome to the RIVAYA documentation. This comprehensive guide covers all aspects
 
 ### Getting Started
 - [Quick Start Guide](./getting-started/quick-start.md)
+- [Docker Setup](./getting-started/docker-setup.md)
 - [Installation](./getting-started/installation.md)
 - [Configuration](./getting-started/configuration.md)
 - [Environment Setup](./getting-started/environment.md)

@@ -1,0 +1,138 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: rivaya-postgres
+    environment:
+      POSTGRES_DB: rivaya_dev
+      POSTGRES_USER: rivaya_user
+      POSTGRES_PASSWORD: rivaya_dev_password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    networks:
+      - rivaya-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rivaya_user -d rivaya_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: rivaya-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - rivaya-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # pgAdmin for Database Management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: rivaya-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@rivaya.dev
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - rivaya-network
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+  # Next.js Web App
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+      target: dev
+    container_name: rivaya-web
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+      - ./packages:/app/packages
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://rivaya_user:rivaya_dev_password@postgres:5432/rivaya_dev
+      - REDIS_URL=redis://redis:6379
+      - NEXT_PUBLIC_API_URL=http://api:3001
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - rivaya-network
+
+  # NestJS API
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+      target: dev
+    container_name: rivaya-api
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./apps/api:/app
+      - /app/node_modules
+      - ./packages:/app/packages
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://rivaya_user:rivaya_dev_password@postgres:5432/rivaya_dev
+      - REDIS_URL=redis://redis:6379
+      - PORT=3001
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - rivaya-network
+
+  # Expo Mobile (for building and serving)
+  mobile:
+    build:
+      context: ./apps/mobile
+      dockerfile: Dockerfile
+    container_name: rivaya-mobile
+    ports:
+      - "8081:8081"
+      - "19000:19000"
+      - "19001:19001"
+      - "19002:19002"
+    volumes:
+      - ./apps/mobile:/app
+      - /app/node_modules
+      - ./packages:/app/packages
+    environment:
+      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+      - REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0
+      - EXPO_TUNNEL=true
+    networks:
+      - rivaya-network
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+
+networks:
+  rivaya-network:
+    driver: bridge

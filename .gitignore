@@ -18,6 +18,10 @@ out/
 .env.test.local
 .env.production.local
 .env.staging.local
+.env.docker
+.env.docker.local
+.env.docker.production
+.env.docker.staging
 
 # Logs
 logs/
@@ -146,6 +150,9 @@ playwright/.cache/
 # Docker
 .dockerignore
 docker-compose.override.yml
+docker-compose.prod.yml
+docker-compose.staging.yml
+docker-compose.dev.yml
 
 # Local development
 .local/
@@ -171,6 +178,10 @@ local/
 config/secrets.json
 config/production.json
 config/staging.json
+config/database.json
+config/redis.json
+config/email.json
+config/payment.json
 
 # IDE specific files
 .vscode/settings.json
@@ -214,3 +225,13 @@ bundle-analyzer-report.html
 # Security
 .npmrc
 .yarnrc
+.envrc
+.envrc.local
+
+# API Keys and Secrets
+secrets/
+keys/
+*.key
+*.pem
+*.p12
+*.pfx

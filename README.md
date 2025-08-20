@@ -8,6 +8,22 @@
 
 ## 🚀 Quick Start
 
+### Option 1: Docker (Recommended)
+
+```bash
+# Clone the repository
+git clone https://github.com/rivaya/rivaya.git
+cd rivaya
+
+# Start all services with Docker
+docker-compose up -d
+
+# Or start with logs visible
+docker-compose up
+```
+
+### Option 2: Local Development
+
 ```bash
 # Clone the repository
 git clone https://github.com/rivaya/rivaya.git
@@ -29,7 +45,15 @@ pnpm db:seed
 pnpm dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) to see the web application.
+## 🌐 Access Points
+
+After starting the services, you can access:
+
+- **Web App**: [http://localhost:3000](http://localhost:3000)
+- **API**: [http://localhost:3001](http://localhost:3001)
+- **API Docs**: [http://localhost:3001/api/docs](http://localhost:3001/api/docs)
+- **pgAdmin**: [http://localhost:5050](http://localhost:5050) (admin@rivaya.dev / admin123)
+- **Mobile Dev Server**: [http://localhost:8081](http://localhost:8081)
 
 ## 📖 Documentation
 
@@ -128,6 +152,12 @@ rivaya/
 ## 🔧 Development
 
 ### Prerequisites
+
+#### For Docker Development (Recommended)
+- Docker Desktop
+- Git
+
+#### For Local Development
 - Node.js 18+
 - pnpm 8+
 - Git
@@ -139,9 +169,18 @@ rivaya/
 ```bash
 # Development
 pnpm dev              # Start all development servers
+pnpm dev:docker       # Start all services with Docker
+pnpm dev:detached     # Start Docker services in background
 pnpm dev:web          # Start web app only
 pnpm dev:api          # Start API only
 pnpm dev:mobile       # Start mobile app only
+
+# Docker Management
+pnpm docker:build     # Build all Docker images
+pnpm docker:up        # Start Docker services
+pnpm docker:down      # Stop Docker services
+pnpm docker:logs      # View Docker logs
+pnpm docker:clean     # Clean Docker volumes and images
 
 # Building
 pnpm build            # Build all packages
@@ -158,14 +197,19 @@ pnpm test:coverage    # Run tests with coverage
 # Code Quality
 pnpm lint             # Run ESLint
 pnpm format           # Format code with Prettier
-pnpm type-check       # Run TypeScript type checking
+pnpm typecheck        # Run TypeScript type checking
 
 # Database
+pnpm db:setup         # Start database services (Docker)
 pnpm db:generate      # Generate Prisma client
 pnpm db:push          # Push schema to database
 pnpm db:migrate       # Run database migrations
 pnpm db:seed          # Seed database with sample data
 pnpm db:studio        # Open Prisma Studio
+
+# Mobile Development
+pnpm mobile:android   # Run Android app
+pnpm mobile:tunnel    # Start mobile dev server with tunnel
 
 # Deployment
 pnpm deploy:staging   # Deploy to staging
