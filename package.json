@@ -47,7 +47,6 @@
     "dev:docker": "docker-compose up",
     "dev:detached": "docker-compose up -d",
     "db:setup": "docker-compose up -d postgres redis pgadmin",
-    "db:migrate": "pnpm --filter @rivaya/frontend db:migrate",
     "db:seed": "pnpm --filter @rivaya/frontend db:seed",
     "mobile:android": "pnpm --filter @rivaya/mobile android",
     "mobile:ios": "pnpm --filter @rivaya/mobile ios",
