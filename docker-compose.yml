@@ -4,73 +4,100 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
-    container_name: rivaya-postgres
+    container_name: rivaya_postgres
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: rivaya_dev
+      POSTGRES_DB: rivaya
       POSTGRES_USER: rivaya_user
-      POSTGRES_PASSWORD: rivaya_dev_password
-      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_PASSWORD: rivaya_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init:/docker-entrypoint-initdb.d
     networks:
-      - rivaya-network
+      - rivaya_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U rivaya_user -d rivaya_dev"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["CMD-SHELL", "pg_isready -U rivaya_user -d rivaya"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Redis Cache
   redis:
     image: redis:7-alpine
-    container_name: rivaya-redis
+    container_name: rivaya_redis
+    restart: unless-stopped
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
     networks:
-      - rivaya-network
+      - rivaya_network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # pgAdmin for Database Management
   pgadmin:
     image: dpage/pgadmin4:latest
-    container_name: rivaya-pgadmin
+    container_name: rivaya_pgadmin
+    restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@rivaya.dev
+      PGADMIN_DEFAULT_EMAIL: admin@rivaya.com
       PGADMIN_DEFAULT_PASSWORD: admin123
       PGADMIN_CONFIG_SERVER_MODE: 'False'
     ports:
       - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - rivaya_network
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - rivaya-network
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
 
-  # Next.js Web App
+  # Supabase Local Development
+  supabase:
+    image: supabase/postgres:15.1.0.117
+    container_name: rivaya_supabase
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: postgres
+      JWT_SECRET: your-super-secret-jwt-token-with-at-least-32-characters-long
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+    ports:
+      - "54322:5432"
+    volumes:
+      - supabase_data:/var/lib/postgresql/data
+      - ./supabase:/supabase
+    networks:
+      - rivaya_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Next.js Web Application
   web:
     build:
-      context: ./apps/web
-      dockerfile: Dockerfile
-      target: dev
-    container_name: rivaya-web
+      context: .
+      dockerfile: frontend/Dockerfile
+      target: runner
+    container_name: rivaya_web
+    restart: unless-stopped
     ports:
       - "3000:3000"
-    volumes:
-      - ./apps/web:/app
-      - /app/node_modules
-      - ./packages:/app/packages
     environment:
-      - NODE_ENV=development
-      - DATABASE_URL=postgresql://rivaya_user:rivaya_dev_password@postgres:5432/rivaya_dev
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://rivaya_user:rivaya_password@postgres:5432/rivaya
       - REDIS_URL=redis://redis:6379
       - NEXT_PUBLIC_API_URL=http://api:3001
     depends_on:
@@ -78,61 +105,104 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      api:
+        condition: service_started
     networks:
-      - rivaya-network
+      - rivaya_network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  # NestJS API
+  # NestJS API Application
   api:
     build:
-      context: ./apps/api
-      dockerfile: Dockerfile
-      target: dev
-    container_name: rivaya-api
+      context: .
+      dockerfile: backend/Dockerfile
+      target: runner
+    container_name: rivaya_api
+    restart: unless-stopped
     ports:
       - "3001:3001"
-    volumes:
-      - ./apps/api:/app
-      - /app/node_modules
-      - ./packages:/app/packages
     environment:
-      - NODE_ENV=development
-      - DATABASE_URL=postgresql://rivaya_user:rivaya_dev_password@postgres:5432/rivaya_dev
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://rivaya_user:rivaya_password@postgres:5432/rivaya
       - REDIS_URL=redis://redis:6379
       - PORT=3001
+      - JWT_SECRET=your-super-secret-jwt-token-with-at-least-32-characters-long
+      - STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+      - STRIPE_WEBHOOK_SECRET=whsec_your_stripe_webhook_secret
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     networks:
-      - rivaya-network
+      - rivaya_network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  # Expo Mobile (for building and serving)
+  # Expo Mobile Development Server
   mobile:
     build:
-      context: ./apps/mobile
-      dockerfile: Dockerfile
-    container_name: rivaya-mobile
+      context: .
+      dockerfile: mobile/Dockerfile
+      target: dev
+    container_name: rivaya_mobile
+    restart: unless-stopped
     ports:
-      - "8081:8081"
-      - "19000:19000"
-      - "19001:19001"
-      - "19002:19002"
-    volumes:
-      - ./apps/mobile:/app
-      - /app/node_modules
-      - ./packages:/app/packages
+      - "8081:8081"   # Metro bundler
+      - "19000:19000" # Expo DevTools
+      - "19001:19001" # Expo DevTools
+      - "19002:19002" # Expo DevTools
     environment:
+      - NODE_ENV=development
       - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
       - REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0
       - EXPO_TUNNEL=true
+      - EXPO_PUBLIC_API_URL=http://api:3001
+    depends_on:
+      api:
+        condition: service_started
     networks:
-      - rivaya-network
+      - rivaya_network
+    volumes:
+      - ./mobile:/app/mobile
+      - /app/mobile/node_modules
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: rivaya_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      web:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    networks:
+      - rivaya_network
 
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
+    driver: local
   pgadmin_data:
+    driver: local
+  supabase_data:
+    driver: local
 
 networks:
-  rivaya-network:
+  rivaya_network:
     driver: bridge

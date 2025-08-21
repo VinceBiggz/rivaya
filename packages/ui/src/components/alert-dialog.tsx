@@ -1,9 +1,0 @@
-export const AlertDialog = () => <div>AlertDialog Component</div>
-export const AlertDialogTrigger = () => <div>AlertDialogTrigger Component</div>
-export const AlertDialogContent = () => <div>AlertDialogContent Component</div>
-export const AlertDialogHeader = () => <div>AlertDialogHeader Component</div>
-export const AlertDialogTitle = () => <div>AlertDialogTitle Component</div>
-export const AlertDialogDescription = () => <div>AlertDialogDescription Component</div>
-export const AlertDialogFooter = () => <div>AlertDialogFooter Component</div>
-export const AlertDialogAction = () => <div>AlertDialogAction Component</div>
-export const AlertDialogCancel = () => <div>AlertDialogCancel Component</div>

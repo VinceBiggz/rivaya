@@ -1,271 +1,290 @@
 # RIVAYA - AI-Powered Group Management Platform
 
-[![CI](https://github.com/rivaya/rivaya/actions/workflows/ci.yml/badge.svg)](https://github.com/rivaya/rivaya/actions/workflows/ci.yml)
-[![Deploy](https://github.com/rivaya/rivaya/actions/workflows/deploy.yml/badge.svg)](https://github.com/rivaya/rivaya/actions/workflows/deploy.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-> Revolutionizing how families, alumni, SACCOs, and friends stay connected across any distance.
+A fully containerized, cross-platform group management platform with web, mobile, and API applications.
 
 ## 🚀 Quick Start
 
-### Option 1: Docker (Recommended)
+### Prerequisites
+- Docker & Docker Compose
+- Node.js 18+ (for local development)
+- pnpm (recommended package manager)
 
+### 1. Clone and Setup
 ```bash
-# Clone the repository
-git clone https://github.com/rivaya/rivaya.git
+git clone https://github.com/VinceBiggz/rivaya.git
 cd rivaya
+cp env.docker.example .env.docker
+# Edit .env.docker with your configuration
+```
 
-# Start all services with Docker
+### 2. Start Everything with Docker
+```bash
+# Start all services (database, web, API, mobile)
 docker-compose up -d
 
-# Or start with logs visible
+# Or start with logs
 docker-compose up
 ```
 
-### Option 2: Local Development
+### 3. Access Your Applications
 
+| Service | URL | Description |
+|---------|-----|-------------|
+| **Web App** | http://localhost:3000 | Next.js frontend |
+| **API** | http://localhost:3001 | NestJS backend |
+| **Mobile Dev** | http://localhost:8081 | Expo development server |
+| **pgAdmin** | http://localhost:5050 | Database management |
+| **Nginx** | http://localhost:80 | Reverse proxy |
+
+## 📱 Mobile Testing
+
+### Android (Samsung)
+1. Install Expo Go from Google Play Store
+2. Scan QR code from: http://localhost:8081
+3. App will load with hot reload
+
+### iPhone
+1. Install Expo Go from App Store
+2. Scan QR code from: http://localhost:8081
+3. App will load with hot reload
+
+### Cross-Platform Testing
+- **Windows**: Access via browser at http://localhost:3000
+- **macOS**: Access via browser at http://localhost:3000
+- **ChromeOS**: Access via browser at http://localhost:3000
+
+## 🛠 Development Commands
+
+### Docker Commands
 ```bash
-# Clone the repository
-git clone https://github.com/rivaya/rivaya.git
-cd rivaya
+# Build all containers
+pnpm docker:build
 
-# Install dependencies
-pnpm install
+# Start all services
+pnpm docker:up
 
-# Set up environment
-cp .env.example .env.local
-# Edit .env.local with your configuration
+# View logs
+pnpm docker:logs
 
-# Set up database
-pnpm db:generate
-pnpm db:push
-pnpm db:seed
+# Stop all services
+pnpm docker:down
 
-# Start development servers
-pnpm dev
+# Clean up volumes
+pnpm docker:clean
+
+# Restart services
+pnpm docker:restart
 ```
 
-## 🌐 Access Points
+### Local Development
+```bash
+# Install dependencies
+pnpm install:all
 
-After starting the services, you can access:
+# Start database services only
+pnpm db:setup
 
-- **Web App**: [http://localhost:3000](http://localhost:3000)
-- **API**: [http://localhost:3001](http://localhost:3001)
-- **API Docs**: [http://localhost:3001/api/docs](http://localhost:3001/api/docs)
-- **pgAdmin**: [http://localhost:5050](http://localhost:5050) (admin@rivaya.dev / admin123)
-- **Mobile Dev Server**: [http://localhost:8081](http://localhost:8081)
+# Start web and API locally
+pnpm dev
 
-## 📖 Documentation
+# Start mobile development
+pnpm dev:mobile
 
-- [Quick Start Guide](./docs/getting-started/quick-start.md)
-- [Installation Guide](./docs/getting-started/installation.md)
-- [API Documentation](./docs/api/README.md)
-- [Architecture Overview](./docs/architecture/overview.md)
-- [Contributing Guide](./docs/contributing.md)
+# Run tests
+pnpm test
 
-## 🏗️ Architecture
+# Type checking
+pnpm typecheck
 
-RIVAYA is built as a modern monorepo with the following structure:
+# Linting
+pnpm lint
+```
+
+## 🏗 Architecture
 
 ```
 rivaya/
-├── apps/
-│   ├── web/          # Next.js 14 web application
-│   ├── mobile/       # Expo React Native mobile app
-│   └── api/          # NestJS API server
-├── packages/
-│   ├── ui/           # Shared UI components
-│   ├── shared/       # Shared types, schemas, utilities
-│   ├── config/       # Shared configurations
-│   └── database/     # Database schema and utilities
-├── supabase/         # Supabase configuration and migrations
-├── docs/             # Documentation
-└── scripts/          # Development and deployment scripts
+├── frontend/          # Next.js Web App
+├── backend/           # NestJS API
+├── mobile/            # React Native (Expo)
+├── shared/            # Shared types & utilities
+├── docker-compose.yml # Container orchestration
+├── nginx/             # Reverse proxy config
+└── database/          # Database initialization
 ```
 
-## 🛠️ Tech Stack
+### Container Architecture
+- **Web**: Next.js frontend (port 3000)
+- **API**: NestJS backend (port 3001)
+- **Mobile**: Expo development server (port 8081)
+- **Database**: PostgreSQL (port 5432)
+- **Cache**: Redis (port 6379)
+- **Proxy**: Nginx (port 80/443)
+- **Admin**: pgAdmin (port 5050)
 
-### Frontend
-- **Next.js 14** - React framework with App Router
-- **React Native** - Mobile app development
-- **Expo** - React Native development platform
-- **Tailwind CSS** - Utility-first CSS framework
-- **shadcn/ui** - Re-usable UI components
-- **NativeBase** - Mobile UI component library
+## 🔧 Configuration
 
-### Backend
-- **NestJS** - Node.js framework for building scalable applications
-- **Prisma** - Database ORM
-- **Supabase** - Backend-as-a-Service with PostgreSQL
-- **PostgreSQL** - Primary database
-
-### Development Tools
-- **TypeScript** - Type-safe JavaScript
-- **Turborepo** - Monorepo build system
-- **pnpm** - Fast, disk space efficient package manager
-- **ESLint & Prettier** - Code quality and formatting
-- **Husky** - Git hooks
-- **Commitlint** - Conventional commit messages
-
-### Testing
-- **Vitest** - Unit testing
-- **Playwright** - End-to-end testing
-- **Jest** - Testing framework
-- **Storybook** - Component development and testing
-
-### DevOps
-- **GitHub Actions** - CI/CD pipelines
-- **CircleCI** - Alternative CI/CD
-- **Vercel** - Web app deployment
-- **Railway** - API deployment
-- **Supabase** - Database hosting
-
-## 🚀 Features
-
-### Core Features
-- **Group Management** - Create and manage various types of groups
-- **Member Management** - Invite, manage, and organize group members
-- **Event Planning** - Schedule and manage group events
-- **Payment Processing** - Handle contributions and payments
-- **Media Sharing** - Share photos, videos, and documents
-- **Real-time Communication** - Chat and notifications
-
-### AI-Powered Features
-- **Smart Group Recommendations** - AI suggests relevant groups
-- **Content Moderation** - Automated content filtering
-- **Meeting Summaries** - AI-generated meeting minutes
-- **Smart Notifications** - Intelligent notification system
-- **Media Organization** - AI-powered media tagging and organization
-
-### Security Features
-- **Row Level Security (RLS)** - Database-level security
-- **JWT Authentication** - Secure user authentication
-- **Role-based Access Control** - Granular permissions
-- **Data Encryption** - End-to-end encryption for sensitive data
-
-## 📱 Platforms
-
-- **Web Application** - Modern, responsive web app
-- **Mobile App** - Native iOS and Android applications
-- **API** - RESTful API for third-party integrations
-
-## 🔧 Development
-
-### Prerequisites
-
-#### For Docker Development (Recommended)
-- Docker Desktop
-- Git
-
-#### For Local Development
-- Node.js 18+
-- pnpm 8+
-- Git
-- PostgreSQL (for local development)
-- Supabase account (for production)
-
-### Available Scripts
+### Environment Variables
+Copy `env.docker.example` to `.env.docker` and configure:
 
 ```bash
-# Development
-pnpm dev              # Start all development servers
-pnpm dev:docker       # Start all services with Docker
-pnpm dev:detached     # Start Docker services in background
-pnpm dev:web          # Start web app only
-pnpm dev:api          # Start API only
-pnpm dev:mobile       # Start mobile app only
-
-# Docker Management
-pnpm docker:build     # Build all Docker images
-pnpm docker:up        # Start Docker services
-pnpm docker:down      # Stop Docker services
-pnpm docker:logs      # View Docker logs
-pnpm docker:clean     # Clean Docker volumes and images
-
-# Building
-pnpm build            # Build all packages
-pnpm build:web        # Build web app
-pnpm build:api        # Build API
-pnpm build:mobile     # Build mobile app
-
-# Testing
-pnpm test             # Run all tests
-pnpm test:unit        # Run unit tests
-pnpm test:e2e         # Run E2E tests
-pnpm test:coverage    # Run tests with coverage
-
-# Code Quality
-pnpm lint             # Run ESLint
-pnpm format           # Format code with Prettier
-pnpm typecheck        # Run TypeScript type checking
-
 # Database
-pnpm db:setup         # Start database services (Docker)
-pnpm db:generate      # Generate Prisma client
-pnpm db:push          # Push schema to database
-pnpm db:migrate       # Run database migrations
-pnpm db:seed          # Seed database with sample data
-pnpm db:studio        # Open Prisma Studio
+DATABASE_URL=postgresql://rivaya_user:rivaya_password@postgres:5432/rivaya
 
-# Mobile Development
-pnpm mobile:android   # Run Android app
-pnpm mobile:tunnel    # Start mobile dev server with tunnel
+# API
+JWT_SECRET=your-super-secret-jwt-token
+STRIPE_SECRET_KEY=sk_test_your_stripe_key
 
-# Deployment
-pnpm deploy:staging   # Deploy to staging
-pnpm deploy:prod      # Deploy to production
+# Mobile
+EXPO_PUBLIC_API_URL=http://api:3001
 ```
+
+### Database Setup
+```bash
+# Initialize database
+pnpm db:setup
+
+# Run migrations
+pnpm db:migrate
+
+# Seed data
+pnpm db:seed
+```
+
+## 🧪 Testing
+
+### Web Testing
+- **Unit Tests**: `pnpm --filter @rivaya/frontend test`
+- **E2E Tests**: `pnpm --filter @rivaya/frontend e2e`
+- **Coverage**: `pnpm --filter @rivaya/frontend test:coverage`
+
+### API Testing
+- **Unit Tests**: `pnpm --filter @rivaya/backend test`
+- **Coverage**: `pnpm --filter @rivaya/backend test:coverage`
+
+### Mobile Testing
+- **Unit Tests**: `pnpm --filter @rivaya/mobile test`
+- **Device Testing**: Use Expo Go app
+
+## 📊 Monitoring
+
+### Health Checks
+- **Web**: http://localhost:3000/health
+- **API**: http://localhost:3001/health
+- **Nginx**: http://localhost/health
+
+### Logs
+```bash
+# All services
+docker-compose logs -f
+
+# Specific service
+docker-compose logs -f web
+docker-compose logs -f api
+docker-compose logs -f mobile
+```
+
+## 🔒 Security
+
+### Features
+- **Rate Limiting**: Configured in Nginx
+- **CORS**: Properly configured
+- **Security Headers**: XSS, CSRF protection
+- **JWT Authentication**: Secure token handling
+- **Database RLS**: Row-level security enabled
+
+### SSL/HTTPS
+- Self-signed certificates for development
+- Configured in Nginx for production
+
+## 🚀 Deployment
+
+### Production
+```bash
+# Build production images
+docker-compose -f docker-compose.prod.yml build
+
+# Deploy
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+### Staging
+```bash
+# Build staging images
+docker-compose -f docker-compose.staging.yml build
+
+# Deploy
+docker-compose -f docker-compose.staging.yml up -d
+```
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**Port Conflicts**
+```bash
+# Check what's using ports
+netstat -ano | findstr :3000
+netstat -ano | findstr :3001
+
+# Kill processes
+taskkill /PID <PID> /F
+```
+
+**Container Won't Start**
+```bash
+# Check logs
+docker-compose logs <service-name>
+
+# Rebuild
+docker-compose build --no-cache <service-name>
+```
+
+**Mobile App Won't Load**
+```bash
+# Check Expo tunnel
+docker-compose logs mobile
+
+# Restart mobile service
+docker-compose restart mobile
+```
+
+**Database Connection Issues**
+```bash
+# Check database health
+docker-compose exec postgres pg_isready -U rivaya_user
+
+# Reset database
+docker-compose down -v
+docker-compose up -d postgres
+```
+
+## 📚 Documentation
+
+- [API Documentation](./API_DOCUMENTATION.md)
+- [Deployment Guide](./DEPLOYMENT_GUIDE.md)
+- [Architecture Overview](./ARCHITECTURE.md)
+- [Security Policy](./SECURITY.md)
+- [Contributing Guidelines](./CONTRIBUTING.md)
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](./docs/contributing.md) for details.
-
-### Development Workflow
-
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+2. Create a feature branch
 3. Make your changes
-4. Run tests (`pnpm test`)
-5. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+4. Run tests: `pnpm test`
+5. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](./LICENSE) for details.
 
 ## 🆘 Support
 
-- **Documentation**: [docs.rivaya.com](https://docs.rivaya.com)
-- **Issues**: [GitHub Issues](https://github.com/rivaya/rivaya/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/rivaya/rivaya/discussions)
-- **Discord**: [Join our community](https://discord.gg/rivaya)
-
-## 🙏 Acknowledgments
-
-- [Next.js](https://nextjs.org/) - React framework
-- [Expo](https://expo.dev/) - React Native platform
-- [NestJS](https://nestjs.com/) - Node.js framework
-- [Supabase](https://supabase.com/) - Backend-as-a-Service
-- [Tailwind CSS](https://tailwindcss.com/) - CSS framework
-- [shadcn/ui](https://ui.shadcn.com/) - UI components
-
-## 📊 Status
-
-- [x] Project foundation
-- [x] Monorepo setup
-- [x] CI/CD pipelines
-- [x] Database schema
-- [x] Basic API structure
-- [x] Web app foundation
-- [x] Mobile app foundation
-- [x] Documentation
-- [ ] Core features implementation
-- [ ] AI features integration
-- [ ] Payment gateway integration
-- [ ] Production deployment
-- [ ] Mobile app store submission
+- **Issues**: [GitHub Issues](https://github.com/VinceBiggz/rivaya/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/VinceBiggz/rivaya/discussions)
+- **Email**: vincent@rivaya.com
 
 ---
 
-Made with ❤️ by the RIVAYA team
+**RIVAYA** - Empowering communities through intelligent group management.

@@ -1,7 +1,7 @@
 {
   "name": "rivaya",
   "version": "1.0.0",
-  "description": "RIVAYA - AI-Powered Group Management Platform",
+  "description": "RIVAYA - AI-powered group management platform",
   "author": "Vincent Wachira <vincent@rivaya.com>",
   "repository": {
     "type": "git",
@@ -11,66 +11,60 @@
   "license": "MIT",
   "private": true,
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "frontend",
+    "backend", 
+    "mobile",
+    "shared"
   ],
   "scripts": {
-    "dev": "turbo run dev --parallel",
-    "build": "turbo run build",
-    "test": "turbo run test",
-    "test:coverage": "turbo run test:coverage",
-    "lint": "turbo run lint",
-    "lint:fix": "turbo run lint:fix",
-    "type-check": "turbo run type-check",
-    "e2e": "turbo run e2e",
-    "clean": "turbo run clean",
-    "db:generate": "turbo run db:generate",
-    "db:push": "turbo run db:push",
-    "db:migrate": "turbo run db:migrate",
-    "format": "prettier --write \"**/*.{ts,tsx,md,json,js,jsx}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,md,json,js,jsx}\"",
-    "prepare": "husky install",
-    "changeset": "changeset",
-    "version-packages": "changeset version",
-    "release": "turbo run build && changeset publish",
+    "dev": "concurrently \"pnpm --filter @rivaya/frontend dev\" \"pnpm --filter @rivaya/backend dev\"",
+    "dev:web": "pnpm --filter @rivaya/frontend dev",
+    "dev:api": "pnpm --filter @rivaya/backend dev",
+    "dev:mobile": "pnpm --filter @rivaya/mobile start",
+    "build": "pnpm --filter @rivaya/frontend build && pnpm --filter @rivaya/backend build",
+    "build:web": "pnpm --filter @rivaya/frontend build",
+    "build:api": "pnpm --filter @rivaya/backend build",
+    "start": "concurrently \"pnpm --filter @rivaya/frontend start\" \"pnpm --filter @rivaya/backend start\"",
+    "start:web": "pnpm --filter @rivaya/frontend start",
+    "start:api": "pnpm --filter @rivaya/backend start",
+    "lint": "pnpm --filter @rivaya/frontend lint && pnpm --filter @rivaya/backend lint && pnpm --filter @rivaya/mobile lint",
+    "lint:fix": "pnpm --filter @rivaya/frontend lint:fix && pnpm --filter @rivaya/backend lint:fix && pnpm --filter @rivaya/mobile lint:fix",
+    "typecheck": "pnpm --filter @rivaya/frontend typecheck && pnpm --filter @rivaya/backend typecheck && pnpm --filter @rivaya/mobile type-check",
+    "test": "pnpm --filter @rivaya/frontend test && pnpm --filter @rivaya/backend test && pnpm --filter @rivaya/mobile test",
+    "test:coverage": "pnpm --filter @rivaya/frontend test:coverage && pnpm --filter @rivaya/backend test:coverage",
+    "e2e": "pnpm --filter @rivaya/frontend e2e",
+    "clean": "pnpm --filter @rivaya/frontend clean && pnpm --filter @rivaya/backend clean && pnpm --filter @rivaya/mobile clean",
+    "db:generate": "pnpm --filter @rivaya/frontend db:generate",
+    "db:push": "pnpm --filter @rivaya/frontend db:push",
+    "db:migrate": "pnpm --filter @rivaya/frontend db:migrate",
+    "install:all": "pnpm install",
     "docker:build": "docker-compose build",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f",
-    "docker:clean": "docker-compose down -v --rmi local",
+    "docker:clean": "docker-compose down -v --remove-orphans",
+    "docker:restart": "docker-compose restart",
     "dev:docker": "docker-compose up",
     "dev:detached": "docker-compose up -d",
-    "db:setup": "docker-compose up postgres pgadmin -d",
-    "db:migrate": "docker-compose exec api npm run db:migrate",
-    "db:seed": "docker-compose exec api npm run db:seed",
-    "mobile:android": "cd apps/mobile && npx expo run:android",
-    "mobile:tunnel": "cd apps/mobile && npx expo start --tunnel"
+    "db:setup": "docker-compose up -d postgres redis pgadmin",
+    "db:migrate": "pnpm --filter @rivaya/frontend db:migrate",
+    "db:seed": "pnpm --filter @rivaya/frontend db:seed",
+    "mobile:android": "pnpm --filter @rivaya/mobile android",
+    "mobile:ios": "pnpm --filter @rivaya/mobile ios",
+    "mobile:tunnel": "pnpm --filter @rivaya/mobile start --tunnel",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:status": "supabase status",
+    "supabase:db:reset": "supabase db reset",
+    "supabase:db:push": "supabase db push",
+    "supabase:functions:deploy": "supabase functions deploy"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.27.1",
-    "@commitlint/cli": "^18.4.3",
-    "@commitlint/config-conventional": "^18.4.3",
-    "@turbo/gen": "^1.10.12",
     "@types/node": "^20.9.0",
+    "concurrently": "^8.2.2",
     "eslint": "^8.54.0",
-    "husky": "^8.0.3",
-    "lint-staged": "^15.2.0",
     "prettier": "^3.1.0",
-    "turbo": "^1.10.12",
     "typescript": "^5.2.2"
   },
-  "packageManager": "pnpm@8.9.0",
-  "engines": {
-    "node": ">=18.0.0",
-    "pnpm": ">=8.0.0"
-  },
-  "lint-staged": {
-    "*.{ts,tsx,js,jsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{md,json}": [
-      "prettier --write"
-    ]
-  }
+  "packageManager": "pnpm@8.15.0"
 }
