@@ -1,8 +1,8 @@
 # Simple single-stage build for React Native Expo mobile app
 FROM node:18-alpine
 
-# Install pnpm and Expo CLI
-RUN npm install -g pnpm @expo/cli
+# Install pnpm, Expo CLI, and ngrok
+RUN npm install -g pnpm @expo/cli @expo/ngrok
 
 # Set working directory
 WORKDIR /app/mobile
@@ -23,7 +23,7 @@ EXPOSE 8081 19000 19001 19002
 ENV NODE_ENV=development
 ENV EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
 ENV REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0
-ENV EXPO_TUNNEL=true
+ENV EXPO_TUNNEL=false
 
 # Start Expo development server
-CMD ["npx", "expo", "start", "--tunnel"]
+CMD ["npx", "expo", "start", "--lan"]
