@@ -53,23 +53,32 @@ export default function HomePage() {
         </p>
       </header>
       
-      {/* CTA Buttons */}
-      <div className="flex justify-center gap-5 flex-wrap mb-16">
-        <button 
-          onClick={handleGetStarted}
-          disabled={isLoading}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-8 py-4 rounded-xl text-lg font-semibold shadow-lg transition-all duration-200 transform hover:scale-105 disabled:transform-none"
-        >
-          {isLoading ? 'Loading...' : 'Get Started Free'}
-        </button>
-        
-        <button 
-          onClick={() => window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank')}
-          className="bg-transparent hover:bg-blue-50 text-blue-600 px-8 py-4 border-2 border-blue-600 rounded-xl text-lg font-semibold transition-all duration-200 transform hover:scale-105"
-        >
-          Watch Demo
-        </button>
-      </div>
+                        {/* CTA Buttons */}
+                  <div className="flex justify-center gap-5 flex-wrap mb-16">
+                    <Link href="/auth/signup">
+                      <button 
+                        disabled={isLoading}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-8 py-4 rounded-xl text-lg font-semibold shadow-lg transition-all duration-200 transform hover:scale-105 disabled:transform-none"
+                      >
+                        {isLoading ? 'Loading...' : 'Get Started Free'}
+                      </button>
+                    </Link>
+                    
+                    <Link href="/auth/login">
+                      <button 
+                        className="bg-transparent hover:bg-blue-50 text-blue-600 px-8 py-4 border-2 border-blue-600 rounded-xl text-lg font-semibold transition-all duration-200 transform hover:scale-105"
+                      >
+                        Sign In
+                      </button>
+                    </Link>
+                    
+                    <button 
+                      onClick={() => window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank')}
+                      className="bg-transparent hover:bg-blue-50 text-blue-600 px-8 py-4 border-2 border-blue-600 rounded-xl text-lg font-semibold transition-all duration-200 transform hover:scale-105"
+                    >
+                      Watch Demo
+                    </button>
+                  </div>
 
       {/* Features Section */}
       <section className="max-w-6xl mx-auto mb-16">

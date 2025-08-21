@@ -1,0 +1,59 @@
+version: 2.1
+orbs:
+  node: circleci/node@5.1.0
+  docker: circleci/docker@2.2.0
+
+workflows:
+  build-test-deploy:
+    jobs:
+      - test-web
+      - test-api
+      - test-mobile
+      - build-images:
+          requires: [test-web, test-api, test-mobile]
+
+jobs:
+  test-web:
+    docker:
+      - image: node:18-alpine
+    steps:
+      - checkout
+      - run: npm install -g pnpm
+      - run: cd frontend && pnpm install
+      - run: cd frontend && pnpm run lint
+      - run: cd frontend && pnpm run test
+      - run: cd frontend && pnpm run build
+  
+  test-api:
+    docker:
+      - image: node:18-alpine
+    steps:
+      - checkout
+      - run: npm install -g pnpm
+      - run: cd backend && pnpm install
+      - run: cd backend && pnpm run lint
+      - run: cd backend && pnpm run test
+      - run: cd backend && pnpm run build
+  
+  test-mobile:
+    docker:
+      - image: node:18-alpine
+    steps:
+      - checkout
+      - run: npm install -g pnpm
+      - run: cd mobile && pnpm install
+      - run: cd mobile && pnpm run lint
+      - run: cd mobile && pnpm run test
+  
+  build-images:
+    machine: true
+    steps:
+      - checkout
+      - docker/build:
+          image: rivaya/web
+          dockerfile: frontend/Dockerfile
+          tag: latest,$CIRCLE_SHA1
+      - docker/build:
+          image: rivaya/api
+          dockerfile: backend/Dockerfile
+          tag: latest,$CIRCLE_SHA1
