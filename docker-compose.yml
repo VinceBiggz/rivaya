@@ -1,3 +1,5 @@
+
+
 services:
   # Redis Cache
   redis:
@@ -16,7 +18,7 @@ services:
       timeout: 10s
       retries: 3
 
-  # Supabase Local Development
+  # Supabase Local Development (Isolated for debugging)
   supabase:
     image: supabase/postgres:15.1.0.117
     container_name: rivaya_supabase
@@ -45,7 +47,8 @@ services:
   web:
     build:
       context: .
-      dockerfile: frontend/Dockerfile
+      dockerfile: apps/web/Dockerfile
+      target: base  # Use base stage for development
     container_name: rivaya_web
     restart: unless-stopped
     ports:
@@ -57,9 +60,12 @@ services:
       - SUPABASE_ANON_KEY=your-anon-key
       - REDIS_URL=redis://redis:6379
       - NEXT_PUBLIC_API_URL=http://api:3001
+    volumes:
+      - ./apps/web:/app/apps/web
+      - ./packages/shared:/app/packages/shared
+      - /app/apps/web/node_modules
+      - /app/packages/shared/node_modules
     depends_on:
-      supabase:
-        condition: service_healthy
       redis:
         condition: service_healthy
     networks:
@@ -74,7 +80,8 @@ services:
   api:
     build:
       context: .
-      dockerfile: backend/Dockerfile
+      dockerfile: apps/api/Dockerfile
+      target: base  # Use base stage for development
     container_name: rivaya_api
     restart: unless-stopped
     ports:
@@ -89,10 +96,15 @@ services:
       - JWT_SECRET=your-super-secret-jwt-token-with-at-least-32-characters-long
       - STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
       - STRIPE_WEBHOOK_SECRET=whsec_your_stripe_webhook_secret
+    volumes:
+      - ./apps/api:/app/apps/api
+      - ./packages/shared:/app/packages/shared
+      - /app/apps/api/node_modules
+      - /app/packages/shared/node_modules
     depends_on:
-      supabase:
-        condition: service_healthy
       redis:
+        condition: service_healthy
+      supabase:
         condition: service_healthy
     networks:
       - rivaya_network
@@ -106,28 +118,26 @@ services:
   mobile:
     build:
       context: .
-      dockerfile: mobile/Dockerfile
+      dockerfile: apps/mobile/Dockerfile
     container_name: rivaya_mobile
     restart: unless-stopped
     ports:
-      - "8081:8081"   # Metro bundler
-      - "19000:19000" # Expo DevTools
-      - "19001:19001" # Expo DevTools
-      - "19002:19002" # Expo DevTools
+      - "8081:8081"   # Metro bundler (native)
+      - "19006:19006" # Web preview
+    volumes:
+      - ./apps/mobile:/app/apps/mobile
+      - ./packages/shared:/app/packages/shared
+      - /app/apps/mobile/node_modules
+      - /app/packages/shared/node_modules
     environment:
       - NODE_ENV=development
       - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
       - REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0
-      - EXPO_TUNNEL=true
-      - EXPO_PUBLIC_API_URL=http://api:3001
-    depends_on:
-      api:
-        condition: service_started
+      - CHOKIDAR_USEPOLLING=true
+    stdin_open: true
+    tty: true
     networks:
       - rivaya_network
-    volumes:
-      - ./mobile:/app/mobile
-      - /app/mobile/node_modules
 
   # Nginx Reverse Proxy
   nginx:

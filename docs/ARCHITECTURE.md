@@ -1,261 +1,307 @@
-# RIVAYA Architecture
+# RIVAYA Architecture Documentation
 
-## System Overview
+## 🏗️ System Overview
 
-RIVAYA is a modern, scalable, AI-powered group management platform built with a microservices architecture. The system is designed to handle families, alumni groups, SACCOs, and social networks with enterprise-grade security and performance.
+RIVAYA is a modern, containerized microservices architecture designed for scalability, maintainability, and cross-platform compatibility. The system consists of three main applications: Web Frontend, Mobile App, and Backend API, all orchestrated through Docker containers.
 
-## Architecture Principles
-
-- **Scalability**: Horizontal scaling with containerization
-- **Security**: Defense in depth with multiple security layers
-- **Performance**: Optimized for global distribution
-- **Reliability**: High availability with fault tolerance
-- **Maintainability**: Clean architecture with clear separation of concerns
-
-## High-Level Architecture
+## 📐 Architecture Diagram
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Web Client    │    │  Mobile Client  │    │   API Gateway   │
-│   (Next.js)     │    │   (Expo RN)     │    │   (NestJS)      │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
+│   Web Frontend  │    │   Mobile App    │    │   Backend API   │
+│   (Next.js)     │    │ (React Native)  │    │   (NestJS)      │
+│   Port: 3000    │    │   Port: 8081    │    │   Port: 3001    │
+└─────────┬───────┘    └─────────┬───────┘    └─────────┬───────┘
+          │                      │                      │
+          └──────────────────────┼──────────────────────┘
                                  │
-                    ┌─────────────────┐
-                    │   Load Balancer │
-                    └─────────────────┘
-                                 │
-                    ┌─────────────────┐
-                    │   CDN/Edge      │
-                    │   (Cloudflare)  │
-                    └─────────────────┘
-                                 │
-         ┌─────────────────────────────────────────────┐
-         │              Application Layer              │
-         │  ┌─────────────┐  ┌─────────────┐          │
-         │  │   Web App   │  │   API App   │          │
-         │  │  (Next.js)  │  │  (NestJS)   │          │
-         │  └─────────────┘  └─────────────┘          │
-         └─────────────────────────────────────────────┘
-                                 │
-         ┌─────────────────────────────────────────────┐
-         │              Data Layer                     │
-         │  ┌─────────────┐  ┌─────────────┐          │
-         │  │ PostgreSQL  │  │    Redis    │          │
-         │  │ (Supabase)  │  │   (Cache)   │          │
-         │  └─────────────┘  └─────────────┘          │
-         └─────────────────────────────────────────────┘
-                                 │
-         ┌─────────────────────────────────────────────┐
-         │              External Services              │
-         │  ┌─────────────┐  ┌─────────────┐          │
-         │  │   Stripe    │  │   OpenAI    │          │
-         │  │ (Payments)  │  │     (AI)    │          │
-         │  └─────────────┘  └─────────────┘          │
-         │  ┌─────────────┐  ┌─────────────┐          │
-         │  │   M-Pesa    │  │  SendGrid   │          │
-         │  │ (Payments)  │  │   (Email)   │          │
-         │  └─────────────┘  └─────────────┘          │
-         └─────────────────────────────────────────────┘
+                    ┌─────────────┴─────────────┐
+                    │      Nginx Proxy          │
+                    │      Port: 80/443         │
+                    └─────────────┬─────────────┘
+                                  │
+                    ┌─────────────┴─────────────┐
+                    │      Supabase DB          │
+                    │      (PostgreSQL)         │
+                    └─────────────┬─────────────┘
+                                  │
+                    ┌─────────────┴─────────────┐
+                    │        Redis Cache        │
+                    │        Port: 6379         │
+                    └───────────────────────────┘
 ```
 
-## Technology Stack
+## 🏢 Service Architecture
 
-### Frontend (Web)
-- **Framework**: Next.js 14 with App Router
+### Monorepo Structure
+```
+rivaya/
+├── apps/
+│   ├── web/          # Next.js Web Application
+│   ├── api/          # NestJS Backend API
+│   └── mobile/       # React Native Mobile App
+├── packages/
+│   └── shared/       # Shared types and utilities
+└── docker-compose.yml # Service orchestration
+```
+
+### 1. Frontend Service (Web)
+- **Technology**: Next.js 14 with App Router
 - **Language**: TypeScript
-- **Styling**: Tailwind CSS + shadcn/ui
-- **State Management**: TanStack Query + Zustand
-- **Forms**: React Hook Form + Zod validation
-- **Testing**: Vitest + Playwright + Storybook
+- **Styling**: Tailwind CSS
+- **Container**: Docker with Node.js 18 Alpine
+- **Port**: 3000
+- **Features**:
+  - Server-side rendering (SSR)
+  - Static site generation (SSG)
+  - Responsive design
+  - Dark theme support
+  - Authentication pages
+  - Professional landing page
 
-### Frontend (Mobile)
-- **Framework**: Expo React Native
+### 2. Backend Service (API)
+- **Technology**: NestJS
 - **Language**: TypeScript
-- **Navigation**: Expo Router
-- **UI Library**: NativeBase
-- **State Management**: TanStack Query + Zustand
-- **Testing**: Jest + Detox
+- **Database**: Prisma ORM
+- **Container**: Docker with Node.js 18 Alpine
+- **Port**: 3001
+- **Features**:
+  - RESTful API endpoints
+  - JWT authentication
+  - Health check endpoints
+  - Modular architecture
+  - Swagger documentation
+  - Rate limiting
 
-### Backend (API)
-- **Framework**: NestJS
+### 3. Mobile Service
+- **Technology**: React Native with Expo
 - **Language**: TypeScript
-- **Database**: PostgreSQL (Supabase)
-- **ORM**: Prisma
-- **Authentication**: JWT + Passport
-- **Caching**: Redis
-- **Testing**: Jest + Supertest
+- **Container**: Docker with Node.js 18 Alpine
+- **Port**: 8081 (Metro Bundler + Web Preview)
+- **Features**:
+  - Cross-platform compatibility
+  - Hot reload development
+  - Authentication screens
+  - Dashboard interface
+  - Demo user accounts
+  - Web preview support (`?platform=web`)
 
-### Infrastructure
-- **Containerization**: Docker + Docker Compose
-- **CI/CD**: GitHub Actions + CircleCI
-- **Deployment**: Vercel (Web) + Railway (API) + EAS (Mobile)
-- **Database**: Supabase (PostgreSQL)
-- **CDN**: Cloudflare
-- **Monitoring**: Sentry + PostHog
+### 4. Database Service
+- **Technology**: Supabase (PostgreSQL)
+- **Features**:
+  - Row-level security (RLS)
+  - Real-time subscriptions
+  - Built-in authentication
+  - File storage
+  - Database functions
 
-## Data Flow
+### 5. Cache Service
+- **Technology**: Redis
+- **Port**: 6379
+- **Features**:
+  - Session storage
+  - API response caching
+  - Rate limiting storage
+  - Real-time data
 
-### User Authentication Flow
+### 6. Proxy Service
+- **Technology**: Nginx
+- **Ports**: 80 (HTTP), 443 (HTTPS)
+- **Features**:
+  - Load balancing
+  - SSL termination
+  - Rate limiting
+  - Security headers
+  - Reverse proxy
+
+## 🔄 Data Flow
+
+### Authentication Flow
 ```
 1. User submits credentials
-2. API validates credentials
-3. JWT token generated
-4. Token stored in secure cookie
-5. Subsequent requests include token
-6. API validates token on each request
-7. User data returned based on permissions
+2. Frontend/Mobile → Backend API
+3. Backend validates with Supabase
+4. JWT token generated
+5. Token returned to client
+6. Client stores token locally
+7. Subsequent requests include token
 ```
 
-### Payment Flow
+### API Request Flow
 ```
-1. User initiates payment
-2. Frontend creates payment intent
-3. API validates request
-4. Stripe payment intent created
-5. Frontend confirms payment
-6. Webhook received from Stripe
-7. Database updated with payment status
-8. User notified of payment result
+1. Client request → Nginx Proxy
+2. Nginx → Backend API
+3. Backend validates JWT
+4. Backend queries Supabase/Redis
+5. Response → Nginx → Client
 ```
 
-### AI Integration Flow
-```
-1. User requests AI feature
-2. API validates request
-3. OpenAI API called
-4. Response processed and formatted
-5. Result stored in database
-6. User receives AI-generated content
+## 🗄️ Database Design
+
+### Core Tables (Planned)
+```sql
+-- Users table
+users (
+  id UUID PRIMARY KEY,
+  email VARCHAR UNIQUE,
+  full_name VARCHAR,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
+)
+
+-- Groups table
+groups (
+  id UUID PRIMARY KEY,
+  name VARCHAR,
+  description TEXT,
+  owner_id UUID REFERENCES users(id),
+  created_at TIMESTAMP
+)
+
+-- Group members
+group_members (
+  id UUID PRIMARY KEY,
+  group_id UUID REFERENCES groups(id),
+  user_id UUID REFERENCES users(id),
+  role VARCHAR,
+  joined_at TIMESTAMP
+)
+
+-- Payments table
+payments (
+  id UUID PRIMARY KEY,
+  group_id UUID REFERENCES groups(id),
+  payer_id UUID REFERENCES users(id),
+  amount DECIMAL,
+  description TEXT,
+  created_at TIMESTAMP
+)
 ```
 
-## Security Architecture
+## 🔒 Security Architecture
 
 ### Authentication & Authorization
-- **JWT Tokens**: Secure, stateless authentication
-- **Role-Based Access Control**: Granular permissions
-- **Row Level Security**: Database-level security
-- **Multi-Factor Authentication**: Enhanced security
-- **Session Management**: Secure session handling
+- **JWT Tokens**: Stateless authentication
+- **Row-Level Security**: Database-level access control
+- **Rate Limiting**: API request throttling
+- **CORS**: Cross-origin resource sharing
+- **Security Headers**: XSS, CSRF protection
 
 ### Data Protection
-- **Encryption at Rest**: All sensitive data encrypted
-- **Encryption in Transit**: TLS 1.3 for all communications
-- **API Security**: Rate limiting, input validation
-- **CORS Policies**: Controlled cross-origin access
-- **Security Headers**: Comprehensive security headers
+- **Encryption**: Data at rest and in transit
+- **Input Validation**: Server-side validation
+- **SQL Injection Prevention**: Parameterized queries
+- **XSS Prevention**: Content Security Policy
 
-### Infrastructure Security
-- **Network Security**: VPC, firewalls, DDoS protection
-- **Container Security**: Secure base images, scanning
-- **Secret Management**: Environment variables, secure storage
-- **Monitoring**: Security event monitoring and alerting
-
-## Performance Architecture
-
-### Caching Strategy
-- **CDN**: Static assets and API responses
-- **Redis**: Session data and API caching
-- **Browser Caching**: Optimized cache headers
-- **Database Caching**: Query result caching
-
-### Optimization Techniques
-- **Code Splitting**: Dynamic imports for better loading
-- **Image Optimization**: WebP format, lazy loading
-- **Bundle Analysis**: Regular performance monitoring
-- **Database Indexing**: Optimized query performance
-
-### Scalability
-- **Horizontal Scaling**: Container-based scaling
-- **Load Balancing**: Traffic distribution
-- **Database Sharding**: Future scalability planning
-- **Microservices**: Independent service scaling
-
-## Monitoring & Observability
-
-### Application Monitoring
-- **Error Tracking**: Sentry for error monitoring
-- **Performance Monitoring**: Lighthouse CI
-- **User Analytics**: PostHog for user behavior
-- **API Monitoring**: Response times, error rates
-
-### Infrastructure Monitoring
-- **Server Monitoring**: CPU, memory, disk usage
-- **Database Monitoring**: Query performance, connections
-- **Network Monitoring**: Latency, throughput
-- **Security Monitoring**: Intrusion detection, alerts
-
-## Deployment Architecture
+## 🚀 Deployment Architecture
 
 ### Development Environment
-- **Local Development**: Docker Compose setup
-- **Hot Reloading**: Fast development iteration
-- **Database**: Local PostgreSQL with migrations
-- **Testing**: Automated test suites
+- **Docker Compose**: Local service orchestration
+- **Hot Reload**: Development server with live updates
+- **Volume Mounting**: Code changes reflect immediately
+- **Health Checks**: Service availability monitoring
 
-### Staging Environment
-- **Pre-production**: Production-like environment
-- **Testing**: Integration and E2E testing
-- **Performance Testing**: Load testing and optimization
-- **Security Testing**: Vulnerability scanning
-
-### Production Environment
-- **High Availability**: Multi-region deployment
+### Production Environment (Planned)
+- **Kubernetes**: Container orchestration
+- **Load Balancer**: Traffic distribution
 - **Auto-scaling**: Dynamic resource allocation
-- **Backup Strategy**: Automated backups and recovery
-- **Disaster Recovery**: Business continuity planning
+- **Monitoring**: Prometheus + Grafana
+- **Logging**: ELK Stack
 
-## API Design
+## 📊 Performance Considerations
 
-### RESTful API
-- **Resource-Based URLs**: Clear, hierarchical structure
-- **HTTP Methods**: Proper use of GET, POST, PUT, DELETE
-- **Status Codes**: Standard HTTP status codes
-- **Error Handling**: Consistent error responses
-
-### GraphQL (Future)
-- **Single Endpoint**: Efficient data fetching
-- **Type Safety**: Strong typing with GraphQL schema
-- **Real-time Updates**: Subscriptions for live data
-- **Optimized Queries**: Reduced over-fetching
-
-## Database Design
-
-### Schema Design
-- **Normalization**: Proper database normalization
-- **Indexing**: Optimized query performance
-- **Constraints**: Data integrity constraints
-- **Migrations**: Version-controlled schema changes
-
-### Data Models
-- **User Management**: Profiles, preferences, sessions
-- **Group Management**: Groups, members, roles
-- **Payment System**: Contributions, transactions, tiers
-- **Event Management**: Events, RSVPs, minutes
-- **Media Management**: Assets, comments, reactions
-
-## Future Considerations
+### Caching Strategy
+- **Redis**: Session and API response caching
+- **CDN**: Static asset delivery
+- **Database**: Query result caching
+- **Browser**: HTTP caching headers
 
 ### Scalability
-- **Microservices**: Service decomposition
-- **Event-Driven Architecture**: Async communication
-- **Message Queues**: Reliable message processing
-- **Caching Layers**: Multi-level caching strategy
+- **Horizontal Scaling**: Multiple service instances
+- **Database Sharding**: Data distribution
+- **Microservices**: Independent service scaling
+- **Load Balancing**: Traffic distribution
 
-### AI Integration
-- **Machine Learning**: Predictive analytics
-- **Natural Language Processing**: Chat and search
-- **Computer Vision**: Image analysis and tagging
-- **Recommendation Engine**: Personalized content
+## 🔧 Development Workflow
 
-### Internationalization
-- **Multi-language Support**: Localization framework
-- **Currency Support**: Multi-currency payments
-- **Time Zone Handling**: Global time management
-- **Cultural Adaptation**: Regional customization
+### Local Development
+1. **Docker Compose**: Start all services
+2. **Hot Reload**: Code changes reflect immediately
+3. **Database**: Local Supabase instance
+4. **Testing**: Automated test suites
+5. **Linting**: Code quality enforcement
+
+### CI/CD Pipeline
+1. **GitHub Actions**: Automated testing
+2. **CircleCI**: Build and deployment
+3. **Code Quality**: Linting and type checking
+4. **Security**: Vulnerability scanning
+5. **Deployment**: Automated releases
+
+## 🛠️ Technology Stack
+
+### Frontend
+- **Framework**: Next.js 14
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **State Management**: React hooks
+- **Testing**: Vitest
+
+### Backend
+- **Framework**: NestJS
+- **Language**: TypeScript
+- **Database**: Prisma + Supabase
+- **Authentication**: JWT + Passport
+- **Testing**: Jest
+
+### Mobile
+- **Framework**: React Native
+- **Platform**: Expo
+- **Language**: TypeScript
+- **Navigation**: Screen-based routing
+- **Testing**: Jest
+
+### Infrastructure
+- **Containerization**: Docker
+- **Orchestration**: Docker Compose
+- **CI/CD**: GitHub Actions + CircleCI
+- **Database**: Supabase (PostgreSQL)
+- **Cache**: Redis
+
+## 📈 Future Architecture Plans
+
+### Phase 1: Core Features
+- [ ] Real-time messaging (WebSocket)
+- [ ] File upload and storage
+- [ ] Payment integration (Stripe)
+- [ ] Email notifications
+
+### Phase 2: Advanced Features
+- [ ] AI-powered insights
+- [ ] Advanced analytics
+- [ ] Mobile push notifications
+- [ ] Offline support
+
+### Phase 3: Scale & Performance
+- [ ] Kubernetes deployment
+- [ ] Microservices breakdown
+- [ ] Advanced caching
+- [ ] Performance optimization
+
+## 🔍 Monitoring & Observability
+
+### Health Checks
+- **Service Health**: `/health` endpoints
+- **Database Connectivity**: Connection pooling
+- **Cache Status**: Redis ping
+- **API Response Time**: Performance metrics
+
+### Logging
+- **Structured Logging**: JSON format
+- **Log Levels**: DEBUG, INFO, WARN, ERROR
+- **Centralized Logging**: ELK Stack (planned)
+- **Error Tracking**: Sentry integration (planned)
 
 ---
 
-**Last Updated**: December 2024  
-**Next Review**: March 2025
+This architecture provides a solid foundation for building a scalable, maintainable, and feature-rich group management platform.

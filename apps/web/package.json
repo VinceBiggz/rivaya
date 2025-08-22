@@ -1,5 +1,5 @@
 {
-  "name": "@rivaya/frontend",
+  "name": "@rivaya/web",
   "version": "1.0.0",
   "description": "RIVAYA - Next.js Web Application",
   "author": "Vincent Wachira <vincent@rivaya.com>",
@@ -41,7 +41,8 @@
     "clsx": "^2.0.0",
     "tailwind-merge": "^2.0.0",
     "@stripe/stripe-js": "^2.1.11",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "@rivaya/shared": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.9.0",

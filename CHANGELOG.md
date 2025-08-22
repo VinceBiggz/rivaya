@@ -7,146 +7,92 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2024-12-22
+
 ### Added
-- Comprehensive API documentation
-- Payment webhook handlers for multiple gateways
-- Enhanced CI/CD pipeline with security scanning
-- Mobile app development setup
+- **Monorepo Restructure**: Migrated to proper pnpm workspace structure with `apps/*` and `packages/*`
+- **Shared Package**: Created `@rivaya/shared` package for common types and utilities
+- **Workspace Dependencies**: Added proper workspace references across all packages
+- **Multi-stage Docker Builds**: Optimized Docker builds with proper caching layers
 
 ### Changed
-- Updated TypeScript configuration for better monorepo support
-- Improved Docker containerization setup
-- Enhanced database schema with additional indexes
+- **Project Structure**: Moved from `frontend/backend/mobile/shared` to `apps/web/api/mobile` and `packages/shared`
+- **Mobile Web Preview**: Fixed web preview to work with Expo SDK 49+ architecture
+- **Package Names**: Updated package names to reflect new structure (`@rivaya/web`, `@rivaya/api`, `@rivaya/mobile`)
+- **Docker Commands**: Updated all Dockerfiles to use new workspace structure
+- **Service Dependencies**: Fixed health check dependencies in docker-compose.yml
 
 ### Fixed
-- TypeScript compilation errors in API
-- Docker build context issues
-- Environment variable access patterns
+- **Mobile Web Preview**: Resolved web preview access through `http://localhost:8081?platform=web`
+- **Workspace Resolution**: Fixed pnpm workspace dependency resolution
+- **Docker Build Caching**: Optimized build process for faster development
+- **Service Dependencies**: Added proper Supabase dependency to API service
 
-## [1.0.0] - 2024-01-01
+### Technical Details
+- Updated `pnpm-workspace.yaml` to use `apps/*` and `packages/*` patterns
+- Added `@rivaya/shared: "workspace:*"` to all package.json files
+- Modified mobile Dockerfile CMD to use `--web --lan` flags
+- Updated docker-compose.yml with correct service paths and dependencies
+- Removed `--frozen-lockfile` flags for fresh builds during restructuring
 
-### Added
-- Initial project bootstrap with monorepo architecture
-- Next.js 14 web application with App Router
-- NestJS API server with comprehensive endpoints
-- React Native mobile application with Expo
-- PostgreSQL database with Supabase integration
-- Redis caching layer
-- Docker containerization for all services
-- Comprehensive testing setup (Vitest, Playwright, Jest)
-- CI/CD pipeline with GitHub Actions
-- Code quality tools (ESLint, Prettier, Husky)
-- Authentication system with JWT tokens
-- Role-based access control (RBAC)
-- Row Level Security (RLS) implementation
-- Payment gateway integration (Stripe, M-Pesa, PayPal)
-- File storage with Supabase Storage
-- Real-time communication capabilities
-- Comprehensive documentation
+### Breaking Changes
+- **Directory Structure**: All services moved to new `apps/` and `packages/` structure
+- **Package References**: Updated all internal package references to new names
+- **Build Commands**: Docker build contexts and paths updated
 
-### Database Schema
-- **Profiles**: User profiles and authentication
-- **Groups**: Group management and settings
-- **Group Members**: Member roles and permissions
-- **Contribution Tiers**: Financial tracking tiers
-- **Member Contributions**: Individual contribution tracking
-- **Payments**: Payment processing and history
-- **Events**: Event management and scheduling
-- **Event RSVPs**: Event attendance tracking
-- **Minutes**: Meeting documentation
-- **Media Assets**: File storage and management
-- **Households**: Family/household grouping
+## [0.3.1] - 2024-12-21
 
-### Security Features
-- Row Level Security (RLS) on all tables
-- Tenant isolation for multi-tenant architecture
-- Role-based access control (Admin, Treasurer, Secretary, Member)
-- JWT token authentication
-- Password hashing with bcrypt
-- CORS configuration
-- Rate limiting implementation
-- Input validation and sanitization
+### Fixed
+- **Mobile Container Dependency Issue**: Fixed mobile container dependency issue by forcing installation of react-native-web and react-dom (Sprint 0.3.1)
+- **Docker Build Process**: Updated mobile Dockerfile to properly handle web dependencies and ensure clean installation
+- **Container Configuration**: Simplified mobile service configuration in docker-compose.yml
 
-### Development Tools
-- Turborepo for monorepo management
-- pnpm workspaces for package management
-- TypeScript for type safety
-- ESLint and Prettier for code quality
-- Husky for git hooks
-- Conventional commits for version control
-- Comprehensive testing suite
-- Docker development environment
+### Technical Details
+- Replaced mobile Dockerfile with optimized build process
+- Added explicit installation of react-native-web@~0.19.6 and react-dom@18.2.0
+- Updated docker-compose.yml mobile service configuration
+- Removed workspace-specific flags that were causing build failures
 
-### Deployment
-- Docker containerization
-- GitHub Actions CI/CD
-- Vercel deployment for web app
-- Railway/Render deployment for API
-- Expo EAS for mobile builds
-- Supabase for database and storage
-
-### Documentation
-- Comprehensive README with setup instructions
-- API documentation with examples
-- Deployment guides
-- Contributing guidelines
-- Architecture documentation
-
-## [0.2.0] - 2023-12-15
+## [0.3.0] - 2024-12-21
 
 ### Added
-- Containerization setup with Docker
-- Database initialization scripts
-- Development environment configuration
-- Basic authentication flow
-- Core database schema
+- **Web Preview Support for Mobile App**: Added `react-native-web` and `react-dom` dependencies
+- **Expo Web Platform**: Enabled web platform in `app.json` configuration
+- **Docker Web Support**: Updated Dockerfile to start Expo with `--web` flag
+- **Port Configuration**: Added port 19006 for web preview in docker-compose.yml
+- **Documentation**: Updated README with web preview instructions
 
 ### Changed
-- Improved project structure
-- Enhanced development workflow
-- Updated dependencies
+- **Mobile App Access**: Now available at both `localhost:8081` (native) and `localhost:19006` (web)
+- **Development Workflow**: Developers can now preview mobile app in browser for faster iteration
 
-## [0.1.0] - 2023-12-01
+### Technical Details
+- Added `react-dom@18.2.0` and `react-native-web@~0.19.6` to mobile dependencies
+- Updated Expo configuration to include web platform
+- Modified Docker setup to expose web preview port
+- Enhanced documentation with clear testing instructions
+
+## [0.2.0] - 2024-12-21
+
+### Added
+- **Complete Containerized Architecture**: Docker Compose orchestration
+- **Professional Web Application**: Next.js 14 with modern UI
+- **Full Mobile Application**: React Native with authentication
+- **Backend API Foundation**: NestJS with health endpoints
+- **Database Setup**: Supabase PostgreSQL with Redis
+- **CI/CD Pipelines**: GitHub Actions and CircleCI
+- **Comprehensive Documentation**: Architecture and development guides
+
+### Features
+- Authentication system with demo accounts
+- Responsive web design with dark theme
+- Mobile app with navigation and dashboard
+- Containerized development environment
+- Automated testing and deployment
+
+## [0.1.0] - 2024-12-21
 
 ### Added
 - Initial project setup
-- Monorepo configuration
-- Basic application structure
-- Development environment setup
-
----
-
-## Release Notes
-
-### Version 1.0.0 - Initial Release
-
-This is the first major release of RIVAYA, featuring a complete group management platform with:
-
-- **Modern Tech Stack**: Next.js 14, NestJS, React Native, PostgreSQL
-- **Scalable Architecture**: Monorepo with microservices
-- **Security First**: RLS, RBAC, JWT authentication
-- **Payment Ready**: Multiple payment gateway support
-- **Mobile Native**: Cross-platform mobile application
-- **Developer Friendly**: Comprehensive tooling and documentation
-
-### Breaking Changes
-
-None in this initial release.
-
-### Migration Guide
-
-Not applicable for initial release.
-
-### Known Issues
-
-- Mobile app requires Expo development client for full functionality
-- Some payment gateways require additional configuration
-- Real-time features require WebSocket setup
-
-### Deprecations
-
-None in this release.
-
----
-
-For detailed information about each release, please refer to the [GitHub releases page](https://github.com/VinceBiggz/rivaya/releases).
+- Basic monorepo structure
+- Development environment configuration

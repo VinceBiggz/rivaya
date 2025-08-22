@@ -26,8 +26,10 @@
       "package": "com.rivaya.mobile"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
     },
-    "scheme": "rivaya"
+    "scheme": "rivaya",
+    "platforms": ["ios", "android", "web"]
   }
 }

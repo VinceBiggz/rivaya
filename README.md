@@ -1,290 +1,230 @@
 # RIVAYA - AI-Powered Group Management Platform
 
-A fully containerized, cross-platform group management platform with web, mobile, and API applications.
+[![CI/CD](https://github.com/VinceBiggz/rivaya/actions/workflows/ci.yml/badge.svg)](https://github.com/VinceBiggz/rivaya/actions/workflows/ci.yml)
+[![CircleCI](https://circleci.com/gh/VinceBiggz/rivaya.svg?style=svg)](https://circleci.com/gh/VinceBiggz/rivaya)
+
+> **Revolutionizing how families, alumni, SACCOs, and communities stay connected across any distance with AI-powered group management.**
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Docker & Docker Compose
-- Node.js 18+ (for local development)
-- pnpm (recommended package manager)
-
-### 1. Clone and Setup
-```bash
-git clone https://github.com/VinceBiggz/rivaya.git
-cd rivaya
-cp env.docker.example .env.docker
-# Edit .env.docker with your configuration
-```
-
-### 2. Start Everything with Docker
-```bash
-# Start all services (database, web, API, mobile)
-docker-compose up -d
-
-# Or start with logs
-docker-compose up
-```
-
-### 3. Access Your Applications
-
-| Service | URL | Description |
-|---------|-----|-------------|
-| **Web App** | http://localhost:3000 | Next.js frontend |
-| **API** | http://localhost:3001 | NestJS backend |
-| **Mobile Dev** | http://localhost:8081 | Expo development server |
-| **pgAdmin** | http://localhost:5050 | Database management |
-| **Nginx** | http://localhost:80 | Reverse proxy |
-
-## 📱 Mobile Testing
-
-### Android (Samsung)
-1. Install Expo Go from Google Play Store
-2. Scan QR code from: http://localhost:8081
-3. App will load with hot reload
-
-### iPhone
-1. Install Expo Go from App Store
-2. Scan QR code from: http://localhost:8081
-3. App will load with hot reload
-
-### Cross-Platform Testing
-- **Windows**: Access via browser at http://localhost:3000
-- **macOS**: Access via browser at http://localhost:3000
-- **ChromeOS**: Access via browser at http://localhost:3000
-
-## 🛠 Development Commands
-
-### Docker Commands
-```bash
-# Build all containers
-pnpm docker:build
-
-# Start all services
-pnpm docker:up
-
-# View logs
-pnpm docker:logs
-
-# Stop all services
-pnpm docker:down
-
-# Clean up volumes
-pnpm docker:clean
-
-# Restart services
-pnpm docker:restart
-```
+- Docker Desktop
+- Node.js 18+
+- pnpm (recommended)
 
 ### Local Development
 ```bash
-# Install dependencies
-pnpm install:all
+# Clone the repository
+git clone https://github.com/VinceBiggz/rivaya.git
+cd rivaya
 
-# Start database services only
-pnpm db:setup
+# Start all services
+docker-compose up -d
 
-# Start web and API locally
-pnpm dev
-
-# Start mobile development
-pnpm dev:mobile
-
-# Run tests
-pnpm test
-
-# Type checking
-pnpm typecheck
-
-# Linting
-pnpm lint
+# Access the applications
+# Web App: http://localhost:3000
+# API: http://localhost:3001
+# Mobile (Expo): http://localhost:8081
+# Mobile (Web Preview): http://localhost:8081?platform=web
 ```
 
-## 🏗 Architecture
+## 📱 Mobile App Testing
 
+### Demo Accounts
+- **Admin**: `admin@rivaya.com` / `admin123`
+- **User**: `user@rivaya.com` / `user123`
+- **Demo**: `demo@rivaya.com` / `demo123`
+
+### Testing Options
+
+#### Option 1: Web Preview (Recommended for Development)
+1. Visit `http://localhost:8081?platform=web` in your browser
+2. Test the mobile app interface directly in the browser
+3. All authentication flows and dashboard features available
+
+#### Option 2: Native Mobile Testing
+1. Install [Expo GO](https://expo.dev/client) on your device
+2. Connect to: `exp://localhost:8081`
+3. Test all authentication flows and dashboard features
+
+## 🏗️ Architecture
+
+### Tech Stack
+- **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS
+- **Backend**: NestJS, TypeScript, Prisma
+- **Mobile**: React Native (Expo), TypeScript
+- **Database**: Supabase (PostgreSQL with RLS)
+- **Cache**: Redis
+- **Containerization**: Docker & Docker Compose
+- **CI/CD**: GitHub Actions, CircleCI
+- **Testing**: Vitest (Frontend), Jest (Backend/Mobile)
+
+### Project Structure
 ```
 rivaya/
-├── frontend/          # Next.js Web App
-├── backend/           # NestJS API
-├── mobile/            # React Native (Expo)
-├── shared/            # Shared types & utilities
-├── docker-compose.yml # Container orchestration
-├── nginx/             # Reverse proxy config
-└── database/          # Database initialization
+├── apps/
+│   ├── web/                 # Next.js Web Application
+│   │   ├── src/
+│   │   │   ├── app/         # App Router pages
+│   │   │   ├── components/  # Reusable components
+│   │   │   └── __tests__/   # Frontend tests
+│   │   └── Dockerfile
+│   ├── api/                 # NestJS API
+│   │   ├── src/
+│   │   │   ├── modules/     # Feature modules
+│   │   │   ├── common/      # Shared utilities
+│   │   │   └── test/        # Backend tests
+│   │   └── Dockerfile
+│   └── mobile/              # React Native App
+│       ├── src/
+│       │   └── screens/     # Mobile screens
+│       ├── App.tsx          # Main app component
+│       └── Dockerfile
+├── packages/
+│   └── shared/              # Shared types and utilities
+│       ├── src/
+│       │   ├── types/       # TypeScript types
+│       │   ├── schemas/     # Validation schemas
+│       │   └── utils/       # Shared utilities
+│       └── package.json
+├── docker-compose.yml        # Service orchestration
+├── pnpm-workspace.yaml      # pnpm workspace configuration
+├── .github/workflows/        # GitHub Actions
+├── .circleci/               # CircleCI configuration
+└── docs/                    # Documentation
 ```
 
-### Container Architecture
-- **Web**: Next.js frontend (port 3000)
-- **API**: NestJS backend (port 3001)
-- **Mobile**: Expo development server (port 8081)
-- **Database**: PostgreSQL (port 5432)
-- **Cache**: Redis (port 6379)
-- **Proxy**: Nginx (port 80/443)
-- **Admin**: pgAdmin (port 5050)
+## ✨ Features
 
-## 🔧 Configuration
+### ✅ Implemented
+- **Authentication System**: Complete login/signup with demo accounts
+- **Responsive Web Design**: Professional landing page with dark navigation
+- **Mobile App**: Full React Native app with authentication and dashboard
+- **Containerized Architecture**: Docker-based development environment
+- **CI/CD Pipelines**: Automated testing and deployment
+- **Database Setup**: Supabase with PostgreSQL
+- **API Foundation**: NestJS backend with health endpoints
 
-### Environment Variables
-Copy `env.docker.example` to `.env.docker` and configure:
+### 🚧 In Development
+- **AI-Powered Insights**: Intelligent group recommendations
+- **Payment Management**: Group finance handling
+- **Real-time Collaboration**: Live chat and notifications
+- **Group Management**: Create, manage, and organize groups
+- **Event Scheduling**: Calendar and event management
+- **File Sharing**: Media and document management
 
+## 🔧 Development
+
+### Available Scripts
 ```bash
-# Database
-DATABASE_URL=postgresql://rivaya_user:rivaya_password@postgres:5432/rivaya
+# Root level (monorepo)
+pnpm dev          # Start all development servers
+pnpm build        # Build all applications
+pnpm test         # Run all tests
+
+# Web App
+cd apps/web
+pnpm dev          # Start development server
+pnpm build        # Build for production
+pnpm test         # Run tests
 
 # API
-JWT_SECRET=your-super-secret-jwt-token
-STRIPE_SECRET_KEY=sk_test_your_stripe_key
+cd apps/api
+pnpm start:dev    # Start development server
+pnpm test         # Run tests
+pnpm build        # Build for production
 
 # Mobile
-EXPO_PUBLIC_API_URL=http://api:3001
+cd apps/mobile
+pnpm start        # Start Expo development server
+pnpm android      # Run on Android
+pnpm ios          # Run on iOS
+
+# Shared Package
+cd packages/shared
+pnpm build        # Build shared types and utilities
+pnpm test         # Run tests
 ```
 
-### Database Setup
+### Docker Commands
 ```bash
-# Initialize database
-pnpm db:setup
+# Start all services
+docker-compose up -d
 
-# Run migrations
-pnpm db:migrate
+# View logs
+docker-compose logs -f [service]
 
-# Seed data
-pnpm db:seed
+# Rebuild specific service
+docker-compose build --no-cache [service]
+
+# Stop all services
+docker-compose down
 ```
 
 ## 🧪 Testing
 
-### Web Testing
-- **Unit Tests**: `pnpm --filter @rivaya/frontend test`
-- **E2E Tests**: `pnpm --filter @rivaya/frontend e2e`
-- **Coverage**: `pnpm --filter @rivaya/frontend test:coverage`
+### Test Coverage
+- **Frontend**: Unit tests with Vitest
+- **Backend**: Unit and E2E tests with Jest
+- **Mobile**: Component tests with Jest
+- **CI/CD**: Automated testing on every commit
 
-### API Testing
-- **Unit Tests**: `pnpm --filter @rivaya/backend test`
-- **Coverage**: `pnpm --filter @rivaya/backend test:coverage`
-
-### Mobile Testing
-- **Unit Tests**: `pnpm --filter @rivaya/mobile test`
-- **Device Testing**: Use Expo Go app
-
-## 📊 Monitoring
-
-### Health Checks
-- **Web**: http://localhost:3000/health
-- **API**: http://localhost:3001/health
-- **Nginx**: http://localhost/health
-
-### Logs
+### Running Tests
 ```bash
-# All services
-docker-compose logs -f
+# All tests
+pnpm test
 
-# Specific service
-docker-compose logs -f web
-docker-compose logs -f api
-docker-compose logs -f mobile
+# Individual service tests
+cd apps/web && pnpm test      # Frontend tests
+cd apps/api && pnpm test      # Backend tests
+cd apps/mobile && pnpm test   # Mobile tests
+cd packages/shared && pnpm test # Shared package tests
 ```
 
-## 🔒 Security
+## 📊 Current Status
 
-### Features
-- **Rate Limiting**: Configured in Nginx
-- **CORS**: Properly configured
-- **Security Headers**: XSS, CSRF protection
-- **JWT Authentication**: Secure token handling
-- **Database RLS**: Row-level security enabled
+### Sprint 0.3 - COMPLETED ✅
+- [x] CI/CD Pipeline Setup (CircleCI + GitHub Actions)
+- [x] Comprehensive Testing Suite
+- [x] Authentication Pages Implementation
+- [x] Professional Web Design with Dark Theme
+- [x] Mobile App with Full Authentication Flow
+- [x] Demo User Accounts for Testing
+- [x] Containerized Development Environment
 
-### SSL/HTTPS
-- Self-signed certificates for development
-- Configured in Nginx for production
-
-## 🚀 Deployment
-
-### Production
-```bash
-# Build production images
-docker-compose -f docker-compose.prod.yml build
-
-# Deploy
-docker-compose -f docker-compose.prod.yml up -d
-```
-
-### Staging
-```bash
-# Build staging images
-docker-compose -f docker-compose.staging.yml build
-
-# Deploy
-docker-compose -f docker-compose.staging.yml up -d
-```
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**Port Conflicts**
-```bash
-# Check what's using ports
-netstat -ano | findstr :3000
-netstat -ano | findstr :3001
-
-# Kill processes
-taskkill /PID <PID> /F
-```
-
-**Container Won't Start**
-```bash
-# Check logs
-docker-compose logs <service-name>
-
-# Rebuild
-docker-compose build --no-cache <service-name>
-```
-
-**Mobile App Won't Load**
-```bash
-# Check Expo tunnel
-docker-compose logs mobile
-
-# Restart mobile service
-docker-compose restart mobile
-```
-
-**Database Connection Issues**
-```bash
-# Check database health
-docker-compose exec postgres pg_isready -U rivaya_user
-
-# Reset database
-docker-compose down -v
-docker-compose up -d postgres
-```
-
-## 📚 Documentation
-
-- [API Documentation](./API_DOCUMENTATION.md)
-- [Deployment Guide](./DEPLOYMENT_GUIDE.md)
-- [Architecture Overview](./ARCHITECTURE.md)
-- [Security Policy](./SECURITY.md)
-- [Contributing Guidelines](./CONTRIBUTING.md)
+### Services Status
+- **Web App**: ✅ Running on http://localhost:3000
+- **API**: ✅ Running on http://localhost:3001
+- **Mobile**: ✅ Running on http://localhost:8081
+- **Database**: ✅ Supabase PostgreSQL
+- **Cache**: ✅ Redis
+- **CI/CD**: ✅ GitHub Actions + CircleCI
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests: `pnpm test`
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
-MIT License - see [LICENSE](./LICENSE) for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
+- **Documentation**: [docs/](docs/)
 - **Issues**: [GitHub Issues](https://github.com/VinceBiggz/rivaya/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/VinceBiggz/rivaya/discussions)
-- **Email**: vincent@rivaya.com
+
+## 🏆 Acknowledgments
+
+- Built with modern web technologies
+- Containerized for easy development and deployment
+- Designed for scalability and maintainability
+- Focused on user experience across all platforms
 
 ---
 
-**RIVAYA** - Empowering communities through intelligent group management.
+**RIVAYA** - Connecting groups, empowering communities, one platform at a time.

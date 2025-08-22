@@ -1,328 +1,854 @@
 # RIVAYA API Documentation
 
-## Overview
+## 🚀 Overview
 
-The RIVAYA API is a RESTful service built with NestJS that provides comprehensive group management functionality. All endpoints are versioned and require authentication unless specified otherwise.
+The RIVAYA API is a RESTful service built with NestJS that provides comprehensive group management functionality. This documentation covers all available endpoints, authentication, and usage examples.
 
-## Base URL
+**Base URL**: `http://localhost:3001/api/v1`
 
-- **Development**: `http://localhost:3001/api/v1`
-- **Staging**: `https://api-staging.rivaya.com/api/v1`
-- **Production**: `https://api.rivaya.com/api/v1`
+## 🔐 Authentication
 
-## Authentication
+### JWT Authentication
+All protected endpoints require a valid JWT token in the Authorization header:
 
-The API uses JWT tokens for authentication. Include the token in the Authorization header:
-
-```
+```http
 Authorization: Bearer <your-jwt-token>
+```
+
+### Authentication Flow
+1. **Login**: `POST /auth/login` - Get JWT token
+2. **Register**: `POST /auth/register` - Create account and get token
+3. **Refresh**: `POST /auth/refresh` - Refresh expired token
+4. **Logout**: `POST /auth/logout` - Invalidate token
+
+## 📋 API Endpoints
+
+### Health Check
+```http
+GET /health
+```
+
+**Response**:
+```json
+{
+  "status": "ok",
+  "timestamp": "2024-12-19T10:30:00Z",
+  "service": "rivaya-api",
+  "version": "1.0.0"
+}
 ```
 
 ### Authentication Endpoints
 
-#### POST /auth/signup
-Register a new user account.
+#### Login
+```http
+POST /auth/login
+```
 
+**Request Body**:
 ```json
 {
   "email": "user@example.com",
-  "password": "securepassword123",
-  "firstName": "John",
-  "lastName": "Doe",
-  "phone": "+1234567890"
+  "password": "password123"
 }
 ```
 
-#### POST /auth/signin
-Sign in with email and password.
-
+**Response**:
 ```json
 {
-  "email": "user@example.com",
-  "password": "securepassword123"
-}
-```
-
-#### POST /auth/refresh
-Refresh the access token using a refresh token.
-
-```json
-{
-  "refreshToken": "your-refresh-token"
-}
-```
-
-#### POST /auth/signout
-Sign out and invalidate the current session.
-
-## Error Format
-
-All API errors follow a consistent format:
-
-```json
-{
-  "statusCode": 400,
-  "timestamp": "2024-01-01T12:00:00.000Z",
-  "path": "/api/v1/groups",
-  "message": "Validation failed",
-  "errors": [
-    {
-      "field": "name",
-      "message": "Name is required"
-    }
-  ]
-}
-```
-
-## Groups
-
-### GET /groups
-Get all groups the user is a member of.
-
-**Query Parameters:**
-- `page` (number): Page number (default: 1)
-- `limit` (number): Items per page (default: 10)
-- `type` (string): Filter by group type (family, alumni, sacco, friends)
-
-**Response:**
-```json
-{
-  "data": [
-    {
+  "success": true,
+  "data": {
+    "user": {
       "id": "uuid",
-      "name": "Family Group",
-      "description": "Our family group",
-      "type": "family",
-      "logoUrl": "https://example.com/logo.jpg",
-      "memberCount": 15,
-      "createdAt": "2024-01-01T12:00:00.000Z"
+      "email": "user@example.com",
+      "fullName": "John Doe",
+      "role": "user"
+    },
+    "tokens": {
+      "accessToken": "jwt-token",
+      "refreshToken": "refresh-token"
     }
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 10,
-    "total": 25,
-    "pages": 3
   }
 }
 ```
 
-### POST /groups
-Create a new group.
+#### Register
+```http
+POST /auth/register
+```
 
-**Request Body:**
+**Request Body**:
 ```json
 {
-  "name": "New Group",
-  "description": "Group description",
-  "type": "family",
-  "logoUrl": "https://example.com/logo.jpg"
+  "fullName": "John Doe",
+  "email": "user@example.com",
+  "password": "password123",
+  "confirmPassword": "password123"
 }
 ```
 
-### GET /groups/:id
-Get a specific group by ID.
-
-### PUT /groups/:id
-Update a group (admin only).
-
-### DELETE /groups/:id
-Delete a group (admin only).
-
-## Group Members
-
-### GET /groups/:id/members
-Get all members of a group.
-
-### POST /groups/:id/members
-Add a member to a group (admin only).
-
+**Response**:
 ```json
 {
-  "email": "member@example.com",
+  "success": true,
+  "data": {
+    "user": {
+      "id": "uuid",
+      "email": "user@example.com",
+      "fullName": "John Doe",
+      "role": "user"
+    },
+    "tokens": {
+      "accessToken": "jwt-token",
+      "refreshToken": "refresh-token"
+    }
+  }
+}
+```
+
+#### Refresh Token
+```http
+POST /auth/refresh
+```
+
+**Request Body**:
+```json
+{
+  "refreshToken": "refresh-token"
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "accessToken": "new-jwt-token",
+    "refreshToken": "new-refresh-token"
+  }
+}
+```
+
+#### Logout
+```http
+POST /auth/logout
+```
+
+**Headers**:
+```http
+Authorization: Bearer <jwt-token>
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "message": "Successfully logged out"
+}
+```
+
+### User Management Endpoints
+
+#### Get Current User Profile
+```http
+GET /users/profile
+```
+
+**Headers**:
+```http
+Authorization: Bearer <jwt-token>
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "fullName": "John Doe",
+    "role": "user",
+    "profilePicture": "https://example.com/avatar.jpg",
+    "createdAt": "2024-12-19T10:30:00Z",
+    "updatedAt": "2024-12-19T10:30:00Z"
+  }
+}
+```
+
+#### Update User Profile
+```http
+PUT /users/profile
+```
+
+**Headers**:
+```http
+Authorization: Bearer <jwt-token>
+```
+
+**Request Body**:
+```json
+{
+  "fullName": "John Smith",
+  "profilePicture": "https://example.com/new-avatar.jpg"
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "fullName": "John Smith",
+    "profilePicture": "https://example.com/new-avatar.jpg",
+    "updatedAt": "2024-12-19T10:35:00Z"
+  }
+}
+```
+
+#### Change Password
+```http
+PUT /users/password
+```
+
+**Headers**:
+```http
+Authorization: Bearer <jwt-token>
+```
+
+**Request Body**:
+```json
+{
+  "currentPassword": "oldpassword",
+  "newPassword": "newpassword123",
+  "confirmPassword": "newpassword123"
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "message": "Password updated successfully"
+}
+```
+
+### Group Management Endpoints
+
+#### Create Group
+```http
+POST /groups
+```
+
+**Headers**:
+```http
+Authorization: Bearer <jwt-token>
+```
+
+**Request Body**:
+```json
+{
+  "name": "Family Group",
+  "description": "Our family group for staying connected",
+  "category": "family",
+  "privacy": "private",
+  "coverImage": "https://example.com/cover.jpg"
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "name": "Family Group",
+    "description": "Our family group for staying connected",
+    "category": "family",
+    "privacy": "private",
+    "coverImage": "https://example.com/cover.jpg",
+    "ownerId": "user-uuid",
+    "memberCount": 1,
+    "createdAt": "2024-12-19T10:30:00Z",
+    "updatedAt": "2024-12-19T10:30:00Z"
+  }
+}
+```
+
+#### Get User Groups
+```http
+GET /groups
+```
+
+**Headers**:
+```http
+Authorization: Bearer <jwt-token>
+```
+
+**Query Parameters**:
+- `page`: Page number (default: 1)
+- `limit`: Items per page (default: 10)
+- `category`: Filter by category
+- `privacy`: Filter by privacy setting
+
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "groups": [
+      {
+        "id": "uuid",
+        "name": "Family Group",
+        "description": "Our family group",
+        "category": "family",
+        "privacy": "private",
+        "coverImage": "https://example.com/cover.jpg",
+        "memberCount": 5,
+        "role": "owner",
+        "createdAt": "2024-12-19T10:30:00Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 1,
+      "pages": 1
+    }
+  }
+}
+```
+
+#### Get Group Details
+```http
+GET /groups/{groupId}
+```
+
+**Headers**:
+```http
+Authorization: Bearer <jwt-token>
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "name": "Family Group",
+    "description": "Our family group for staying connected",
+    "category": "family",
+    "privacy": "private",
+    "coverImage": "https://example.com/cover.jpg",
+    "owner": {
+      "id": "uuid",
+      "fullName": "John Doe",
+      "email": "john@example.com"
+    },
+    "members": [
+      {
+        "id": "uuid",
+        "fullName": "John Doe",
+        "email": "john@example.com",
+        "role": "owner",
+        "joinedAt": "2024-12-19T10:30:00Z"
+      }
+    ],
+    "memberCount": 1,
+    "createdAt": "2024-12-19T10:30:00Z",
+    "updatedAt": "2024-12-19T10:30:00Z"
+  }
+}
+```
+
+#### Update Group
+```http
+PUT /groups/{groupId}
+```
+
+**Headers**:
+```http
+Authorization: Bearer <jwt-token>
+```
+
+**Request Body**:
+```json
+{
+  "name": "Updated Family Group",
+  "description": "Updated description",
+  "privacy": "public"
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "name": "Updated Family Group",
+    "description": "Updated description",
+    "privacy": "public",
+    "updatedAt": "2024-12-19T10:35:00Z"
+  }
+}
+```
+
+#### Delete Group
+```http
+DELETE /groups/{groupId}
+```
+
+**Headers**:
+```http
+Authorization: Bearer <jwt-token>
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "message": "Group deleted successfully"
+}
+```
+
+### Member Management Endpoints
+
+#### Invite Member
+```http
+POST /groups/{groupId}/members
+```
+
+**Headers**:
+```http
+Authorization: Bearer <jwt-token>
+```
+
+**Request Body**:
+```json
+{
+  "email": "newmember@example.com",
   "role": "member"
 }
 ```
 
-### PUT /groups/:id/members/:memberId
-Update member role (admin only).
-
+**Response**:
 ```json
 {
-  "role": "treasurer"
-}
-```
-
-### DELETE /groups/:id/members/:memberId
-Remove member from group (admin only).
-
-## Contributions
-
-### GET /groups/:id/contributions
-Get all contributions for a group.
-
-### POST /groups/:id/contributions
-Create a new contribution.
-
-```json
-{
-  "tierId": "uuid",
-  "amount": 100.00,
-  "dueDate": "2024-02-01"
-}
-```
-
-### GET /contributions/my
-Get user's own contributions.
-
-### PUT /contributions/:id
-Update contribution status.
-
-## Payments
-
-### POST /payments
-Process a payment.
-
-```json
-{
-  "contributionId": "uuid",
-  "amount": 100.00,
-  "paymentMethod": "stripe",
-  "metadata": {
-    "stripePaymentIntentId": "pi_1234567890"
+  "success": true,
+  "data": {
+    "invitationId": "uuid",
+    "email": "newmember@example.com",
+    "role": "member",
+    "invitedBy": "user-uuid",
+    "invitedAt": "2024-12-19T10:30:00Z",
+    "status": "pending"
   }
 }
 ```
 
-### GET /payments/:id
-Get payment details.
+#### Get Group Members
+```http
+GET /groups/{groupId}/members
+```
 
-### GET /payments
-Get payment history.
+**Headers**:
+```http
+Authorization: Bearer <jwt-token>
+```
 
-## Events
+**Query Parameters**:
+- `page`: Page number (default: 1)
+- `limit`: Items per page (default: 10)
+- `role`: Filter by role
 
-### GET /groups/:id/events
-Get all events for a group.
-
-### POST /groups/:id/events
-Create a new event.
-
+**Response**:
 ```json
 {
-  "title": "Annual Meeting",
-  "description": "Our annual group meeting",
-  "eventDate": "2024-03-15T18:00:00.000Z",
-  "endDate": "2024-03-15T20:00:00.000Z",
-  "location": "Community Center",
+  "success": true,
+  "data": {
+    "members": [
+      {
+        "id": "uuid",
+        "fullName": "John Doe",
+        "email": "john@example.com",
+        "role": "owner",
+        "joinedAt": "2024-12-19T10:30:00Z",
+        "profilePicture": "https://example.com/avatar.jpg"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 1,
+      "pages": 1
+    }
+  }
+}
+```
+
+#### Update Member Role
+```http
+PUT /groups/{groupId}/members/{memberId}
+```
+
+**Headers**:
+```http
+Authorization: Bearer <jwt-token>
+```
+
+**Request Body**:
+```json
+{
+  "role": "moderator"
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "role": "moderator",
+    "updatedAt": "2024-12-19T10:35:00Z"
+  }
+}
+```
+
+#### Remove Member
+```http
+DELETE /groups/{groupId}/members/{memberId}
+```
+
+**Headers**:
+```http
+Authorization: Bearer <jwt-token>
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "message": "Member removed successfully"
+}
+```
+
+### Payment Endpoints (Planned)
+
+#### Create Payment
+```http
+POST /payments
+```
+
+**Headers**:
+```http
+Authorization: Bearer <jwt-token>
+```
+
+**Request Body**:
+```json
+{
+  "groupId": "uuid",
+  "amount": 100.00,
+  "currency": "USD",
+  "description": "Monthly contribution",
+  "paymentMethod": "stripe"
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "groupId": "uuid",
+    "payerId": "user-uuid",
+    "amount": 100.00,
+    "currency": "USD",
+    "description": "Monthly contribution",
+    "status": "pending",
+    "paymentIntent": "pi_xxx",
+    "createdAt": "2024-12-19T10:30:00Z"
+  }
+}
+```
+
+#### Get Group Payments
+```http
+GET /groups/{groupId}/payments
+```
+
+**Headers**:
+```http
+Authorization: Bearer <jwt-token>
+```
+
+**Query Parameters**:
+- `page`: Page number (default: 1)
+- `limit`: Items per page (default: 10)
+- `status`: Filter by payment status
+- `startDate`: Filter from date
+- `endDate`: Filter to date
+
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "payments": [
+      {
+        "id": "uuid",
+        "payer": {
+          "id": "uuid",
+          "fullName": "John Doe"
+        },
+        "amount": 100.00,
+        "currency": "USD",
+        "description": "Monthly contribution",
+        "status": "completed",
+        "createdAt": "2024-12-19T10:30:00Z"
+      }
+    ],
+    "summary": {
+      "totalAmount": 100.00,
+      "totalPayments": 1,
+      "pendingAmount": 0.00
+    },
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 1,
+      "pages": 1
+    }
+  }
+}
+```
+
+### Event Endpoints (Planned)
+
+#### Create Event
+```http
+POST /events
+```
+
+**Headers**:
+```http
+Authorization: Bearer <jwt-token>
+```
+
+**Request Body**:
+```json
+{
+  "groupId": "uuid",
+  "title": "Family Reunion",
+  "description": "Annual family reunion",
+  "location": "Central Park",
+  "startDate": "2025-06-15T14:00:00Z",
+  "endDate": "2025-06-15T18:00:00Z",
   "maxAttendees": 50
 }
 ```
 
-### GET /events/:id
-Get event details.
-
-### PUT /events/:id
-Update event (creator or admin only).
-
-### DELETE /events/:id
-Delete event (creator or admin only).
-
-## Event RSVPs
-
-### POST /events/:id/rsvp
-RSVP to an event.
-
+**Response**:
 ```json
 {
-  "status": "confirmed",
-  "guestsCount": 2,
-  "notes": "Will bring dessert"
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "groupId": "uuid",
+    "title": "Family Reunion",
+    "description": "Annual family reunion",
+    "location": "Central Park",
+    "startDate": "2025-06-15T14:00:00Z",
+    "endDate": "2025-06-15T18:00:00Z",
+    "maxAttendees": 50,
+    "attendeeCount": 0,
+    "createdBy": "user-uuid",
+    "createdAt": "2024-12-19T10:30:00Z"
+  }
 }
 ```
 
-### GET /events/:id/rsvps
-Get all RSVPs for an event.
+#### RSVP to Event
+```http
+POST /events/{eventId}/rsvp
+```
 
-### PUT /events/:id/rsvp
-Update RSVP.
+**Headers**:
+```http
+Authorization: Bearer <jwt-token>
+```
 
-## Minutes
-
-### GET /groups/:id/minutes
-Get all minutes for a group.
-
-### POST /groups/:id/minutes
-Create meeting minutes (secretary only).
-
+**Request Body**:
 ```json
 {
-  "title": "January Meeting Minutes",
-  "content": "Meeting discussion points...",
-  "attendees": ["uuid1", "uuid2"],
-  "decisions": ["Decision 1", "Decision 2"],
-  "actionItems": ["Action 1", "Action 2"]
+  "status": "attending",
+  "guests": 2
 }
 ```
 
-### GET /minutes/:id
-Get minutes details.
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "eventId": "uuid",
+    "userId": "user-uuid",
+    "status": "attending",
+    "guests": 2,
+    "rsvpAt": "2024-12-19T10:30:00Z"
+  }
+}
+```
 
-### PUT /minutes/:id
-Update minutes (secretary only).
+## 🔧 Error Handling
 
-## Media
+### Error Response Format
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Validation failed",
+    "details": [
+      {
+        "field": "email",
+        "message": "Email is required"
+      }
+    ]
+  }
+}
+```
 
-### POST /media/upload
-Upload a media file.
+### Common Error Codes
+- `UNAUTHORIZED`: Invalid or missing authentication
+- `FORBIDDEN`: Insufficient permissions
+- `NOT_FOUND`: Resource not found
+- `VALIDATION_ERROR`: Request validation failed
+- `CONFLICT`: Resource conflict
+- `INTERNAL_ERROR`: Server error
 
-**Form Data:**
-- `file`: The file to upload
-- `groupId`: Group ID
-- `mediaType`: image, video, document, audio
+## 📊 Rate Limiting
 
-### GET /groups/:id/media
-Get all media for a group.
-
-### DELETE /media/:id
-Delete media (uploader or admin only).
-
-## Rate Limiting
-
-The API implements rate limiting:
-- **Authenticated users**: 1000 requests per hour
-- **Unauthenticated users**: 100 requests per hour
+- **Authentication endpoints**: 5 requests per minute
+- **General API endpoints**: 100 requests per minute
+- **File upload endpoints**: 10 requests per minute
 
 Rate limit headers are included in responses:
-```
-X-RateLimit-Limit: 1000
-X-RateLimit-Remaining: 999
+```http
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
 X-RateLimit-Reset: 1640995200
 ```
 
-## Webhooks
+## 🔒 Security
 
-### POST /webhooks/payments
-Payment gateway webhook endpoint.
+### CORS Configuration
+- **Allowed Origins**: Configured for development and production
+- **Allowed Methods**: GET, POST, PUT, DELETE, OPTIONS
+- **Allowed Headers**: Content-Type, Authorization
+- **Credentials**: Supported
 
-**Supported gateways:**
-- Stripe
-- M-Pesa
-- PayPal
+### Security Headers
+- **X-Content-Type-Options**: nosniff
+- **X-Frame-Options**: DENY
+- **X-XSS-Protection**: 1; mode=block
+- **Strict-Transport-Security**: max-age=31536000; includeSubDomains
 
-## Versioning
+## 📝 SDKs and Libraries
 
-API versioning is handled through the URL path. Current version is `v1`.
+### JavaScript/TypeScript
+```bash
+npm install @rivaya/api-client
+```
 
-## SDKs
+```typescript
+import { RivayaClient } from '@rivaya/api-client';
 
-Official SDKs are available for:
-- [JavaScript/TypeScript](https://github.com/VinceBiggz/rivaya-sdk-js)
-- [React Native](https://github.com/VinceBiggz/rivaya-sdk-react-native)
+const client = new RivayaClient({
+  baseUrl: 'http://localhost:3001/api/v1',
+  token: 'your-jwt-token'
+});
 
-## Support
+// Get user profile
+const profile = await client.users.getProfile();
 
-For API support:
-- **Documentation**: [docs.rivaya.com/api](https://docs.rivaya.com/api)
-- **Issues**: [GitHub Issues](https://github.com/VinceBiggz/rivaya/issues)
-- **Email**: api-support@rivaya.com
+// Create group
+const group = await client.groups.create({
+  name: 'My Group',
+  description: 'Group description'
+});
+```
+
+### React Hook
+```typescript
+import { useRivaya } from '@rivaya/react-hooks';
+
+function MyComponent() {
+  const { user, groups, createGroup } = useRivaya();
+
+  const handleCreateGroup = async () => {
+    await createGroup({
+      name: 'New Group',
+      description: 'Description'
+    });
+  };
+
+  return (
+    <div>
+      <h1>Welcome, {user?.fullName}</h1>
+      <button onClick={handleCreateGroup}>Create Group</button>
+    </div>
+  );
+}
+```
+
+## 🧪 Testing
+
+### Test Environment
+- **Base URL**: `http://localhost:3001/api/v1`
+- **Test Database**: Separate test database
+- **Mock Services**: External services mocked
+
+### Example Test
+```typescript
+import { RivayaClient } from '@rivaya/api-client';
+
+describe('Group API', () => {
+  let client: RivayaClient;
+
+  beforeEach(() => {
+    client = new RivayaClient({
+      baseUrl: 'http://localhost:3001/api/v1',
+      token: 'test-token'
+    });
+  });
+
+  it('should create a group', async () => {
+    const group = await client.groups.create({
+      name: 'Test Group',
+      description: 'Test Description'
+    });
+
+    expect(group.name).toBe('Test Group');
+    expect(group.description).toBe('Test Description');
+  });
+});
+```
+
+## 📚 Additional Resources
+
+- [Authentication Guide](./AUTHENTICATION.md)
+- [Webhook Documentation](./WEBHOOKS.md)
+- [Error Codes Reference](./ERROR_CODES.md)
+- [SDK Documentation](./SDK_DOCUMENTATION.md)
+
+---
+
+**API Version**: v1.0.0
+**Last Updated**: December 2024
+**Contact**: api@rivaya.com
