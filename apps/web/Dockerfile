@@ -1,5 +1,5 @@
-# Multi-stage build for Next.js web app
-FROM node:18-alpine AS base
+# Development Dockerfile for Next.js web app
+FROM node:18-alpine
 
 # Install pnpm
 RUN npm install -g pnpm
@@ -19,35 +19,11 @@ RUN pnpm install
 COPY apps/web/ ./apps/web/
 COPY packages/shared/ ./packages/shared/
 
-# Build stage
-FROM base AS builder
-WORKDIR /app/apps/web
-RUN pnpm build
-
-# Production stage
-FROM node:18-alpine AS runner
-WORKDIR /app
-
-# Install pnpm
-RUN npm install -g pnpm
-
-# Copy workspace config and dependencies
-COPY pnpm-workspace.yaml package.json ./
-COPY apps/web/package.json ./apps/web/
-COPY packages/shared/package.json ./packages/shared/
-RUN pnpm install --prod
-
-# Copy built app
-COPY --from=builder /app/apps/web/.next ./apps/web/.next
-COPY --from=builder /app/apps/web/public ./apps/web/public
-COPY --from=builder /app/apps/web/next.config.js ./apps/web/
-COPY apps/web/ ./apps/web/
-COPY packages/shared/ ./packages/shared/
-
+# Set working directory to web app
 WORKDIR /app/apps/web
 
 EXPOSE 3000
-ENV NODE_ENV=production
+ENV NODE_ENV=development
 ENV PORT=3000
 
-CMD ["pnpm", "start"]
+CMD ["pnpm", "dev"]

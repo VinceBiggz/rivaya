@@ -1,5 +1,5 @@
-# Multi-stage build for NestJS API
-FROM node:18-alpine AS base
+# Development Dockerfile for NestJS API
+FROM node:18-alpine
 
 # Install pnpm and NestJS CLI
 RUN npm install -g pnpm @nestjs/cli
@@ -19,34 +19,15 @@ RUN pnpm install
 COPY apps/api/ ./apps/api/
 COPY packages/shared/ ./packages/shared/
 
-# Build stage
-FROM base AS builder
+# Generate Prisma client
 WORKDIR /app/apps/api
-RUN pnpm build
+RUN pnpm db:generate
 
-# Production stage
-FROM node:18-alpine AS runner
-WORKDIR /app
-
-# Install pnpm
-RUN npm install -g pnpm
-
-# Copy workspace config and dependencies
-COPY pnpm-workspace.yaml package.json ./
-COPY apps/api/package.json ./apps/api/
-COPY packages/shared/package.json ./packages/shared/
-RUN pnpm install --prod
-
-# Copy built app
-COPY --from=builder /app/apps/api/dist ./apps/api/dist
-COPY --from=builder /app/apps/api/package.json ./apps/api/
-COPY apps/api/ ./apps/api/
-COPY packages/shared/ ./packages/shared/
-
+# Set working directory back to API
 WORKDIR /app/apps/api
 
 EXPOSE 3001
-ENV NODE_ENV=production
+ENV NODE_ENV=development
 ENV PORT=3001
 
-CMD ["pnpm", "start:prod"]
+CMD ["pnpm", "start:dev"]

@@ -48,7 +48,6 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
-      target: base  # Use base stage for development
     container_name: rivaya_web
     restart: unless-stopped
     ports:
@@ -81,7 +80,6 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-      target: base  # Use base stage for development
     container_name: rivaya_api
     restart: unless-stopped
     ports:
@@ -139,17 +137,15 @@ services:
     networks:
       - rivaya_network
 
-  # Nginx Reverse Proxy
+  # Nginx Reverse Proxy (Development)
   nginx:
     image: nginx:alpine
     container_name: rivaya_nginx
     restart: unless-stopped
     ports:
       - "80:80"
-      - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/nginx.dev.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       web:
         condition: service_healthy
