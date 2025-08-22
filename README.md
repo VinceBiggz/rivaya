@@ -12,21 +12,50 @@
 - Node.js 18+
 - pnpm (recommended)
 
-### Local Development
+### Option 1: Automated Setup (Recommended)
+
+**Windows:**
+```powershell
+.\scripts\setup-dev.ps1
+```
+
+**Linux/Mac:**
+```bash
+chmod +x scripts/setup-dev.sh
+./scripts/setup-dev.sh
+```
+
+### Option 2: Manual Setup
+
 ```bash
 # Clone the repository
 git clone https://github.com/VinceBiggz/rivaya.git
 cd rivaya
 
+# Install dependencies
+pnpm install
+
+# Start database services
+docker-compose up -d supabase redis
+
+# Run database migrations and seed
+docker exec -it rivaya_api pnpm db:migrate
+docker exec -it rivaya_api pnpm db:generate
+docker exec -it rivaya_api pnpm db:seed
+
 # Start all services
 docker-compose up -d
-
-# Access the applications
-# Web App: http://localhost:3000
-# API: http://localhost:3001
-# Mobile (Expo): http://localhost:8081
-# Mobile (Web Preview): http://localhost:8081?platform=web
 ```
+
+### 📧 Demo Credentials
+- **demo@rivaya.com** (password: demo123)
+- **admin@rivaya.com** (password: demo123)
+
+### 🌐 Services
+- Web App: http://localhost:3000
+- API: http://localhost:3001
+- Mobile: http://localhost:8081
+- Mobile Web Preview: http://localhost:19006
 
 ## 📱 Mobile App Testing
 
