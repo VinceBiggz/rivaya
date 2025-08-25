@@ -1,12 +1,19 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ThrottlerModule } from '@nestjs/throttler';
 import { TerminusModule } from '@nestjs/terminus';
+import { ThrottlerModule } from '@nestjs/throttler';
+
+// Core Modules
+import { PrismaModule } from './core/database/prisma.module';
+
+// Feature Modules
+import { AuthModule } from '@/modules/auth/auth.module';
+
+// App-specific
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { validationSchema } from '@/config/validation';
 import { HealthController } from './health/health.controller';
-import { AuthModule } from './auth/auth.module';
-import { validationSchema } from './config/validation';
 
 @Module({
   imports: [
@@ -22,6 +29,7 @@ import { validationSchema } from './config/validation';
       },
     ]),
     TerminusModule,
+    PrismaModule,
     AuthModule,
   ],
   controllers: [AppController, HealthController],

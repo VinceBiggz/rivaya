@@ -39,5 +39,5 @@ EXPOSE 3001
 ENV NODE_ENV=development
 ENV PORT=3001
 
-# Start the development server using npx from root to find nest CLI
-CMD ["npx", "nest", "start", "--watch"]
+# Start the development server using pnpm exec to correctly find nest CLI
+CMD ["pnpm", "exec", "nest", "start", "--watch"]

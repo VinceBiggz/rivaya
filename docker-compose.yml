@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
@@ -54,8 +52,10 @@ services:
     ports:
       - "3001:3001"
     volumes:
-      - ./apps/api:/app/apps/api
-      - /app/node_modules
+      - ./apps/api:/app/apps/api # Mount the API source code for hot-reloading
+      # Remove the /app/node_modules volume mount. Let Docker build and manage node_modules internally.
+      # If you need to share node_modules from the host for specific reasons, consider mounting the entire monorepo root:
+      # - .:/app
     depends_on:
       postgres:
         condition: service_healthy
@@ -77,10 +77,8 @@ services:
       dockerfile: apps/web/Dockerfile
     container_name: rivaya-web
     restart: unless-stopped
-    environment:
-      NODE_ENV: development
-      NEXT_PUBLIC_API_URL: http://localhost:3001
-      NEXT_PUBLIC_APP_URL: http://localhost:3000
+    env_file:
+      - ./apps/web/.env.local
     ports:
       - "3000:3000"
     volumes:
@@ -100,9 +98,8 @@ services:
       dockerfile: apps/mobile/Dockerfile
     container_name: rivaya-mobile
     restart: unless-stopped
-    environment:
-      NODE_ENV: development
-      EXPO_PUBLIC_API_URL: http://localhost:3001
+    env_file:
+      - ./apps/mobile/.env
     ports:
       - "8081:8081"
       - "19000:19000"

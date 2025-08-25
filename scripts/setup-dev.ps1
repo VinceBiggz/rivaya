@@ -84,6 +84,25 @@ function Test-Node {
     Write-Success "Node.js and pnpm are ready"
 }
 
+function Copy-EnvFile {
+    param(
+        [string]$AppPath,
+        [string]$ExampleFile,
+        [string]$TargetFile
+    )
+    
+    $examplePath = Join-Path $AppPath $ExampleFile
+    $targetPath = Join-Path $AppPath $TargetFile
+
+    if ((Test-Path $examplePath) -and (-not (Test-Path $targetPath))) {
+        Copy-Item -Path $examplePath -Destination $targetPath
+        Write-Success "Created $targetPath from $ExampleFile"
+    }
+    elseif (Test-Path $targetPath) {
+        Write-Warning "$targetPath already exists. Skipping."
+    }
+}
+
 # Function to setup environment files
 function Set-EnvironmentFiles {
     Write-Status "Setting up environment files..."
