@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Font variables are handled by Next.js font optimization */
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -10,25 +12,25 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 199 89% 48%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
+    --primary: 142 76% 36%;
+    --primary-foreground: 355.7 100% 97.3%;
+    --secondary: 210 100% 34%;
     --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
+    --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
+    --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 84% 4.9%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 199 89% 48%;
+    --ring: 142 76% 36%;
     --radius: 0.5rem;
     --success: 142 76% 36%;
-    --success-foreground: 210 40% 98%;
+    --success-foreground: 355.7 100% 97.3%;
     --warning: 38 92% 50%;
-    --warning-foreground: 222.2 84% 4.9%;
-    --info: 199 89% 48%;
+    --warning-foreground: 48 96% 89%;
+    --info: 210 100% 34%;
     --info-foreground: 210 40% 98%;
   }
 
@@ -39,8 +41,8 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 199 89% 48%;
-    --primary-foreground: 222.2 84% 4.9%;
+    --primary: 160 84% 39%;
+    --primary-foreground: 210 40% 98%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
@@ -51,12 +53,12 @@
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 199 89% 48%;
-    --success: 142 76% 36%;
+    --ring: 160 84% 39%;
+    --success: 160 84% 39%;
     --success-foreground: 210 40% 98%;
     --warning: 38 92% 50%;
-    --warning-foreground: 222.2 84% 4.9%;
-    --info: 199 89% 48%;
+    --warning-foreground: 48 96% 89%;
+    --info: 217.2 32.6% 17.5%;
     --info-foreground: 210 40% 98%;
   }
 }
@@ -65,38 +67,32 @@
   * {
     @apply border-border;
   }
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+    @apply bg-primary text-white hover:bg-primary-600 transition-colors duration-200 font-medium;
   }
   
   .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+    @apply bg-secondary text-white hover:bg-secondary-600 transition-colors duration-200 font-medium;
   }
   
-  .btn-destructive {
-    @apply bg-destructive text-destructive-foreground hover:bg-destructive/90;
-  }
-  
-  .btn-outline {
-    @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground;
-  }
-  
-  .btn-ghost {
-    @apply hover:bg-accent hover:text-accent-foreground;
-  }
-  
-  .btn-link {
-    @apply text-primary underline-offset-4 hover:underline;
+  .btn-accent {
+    @apply bg-accent text-accent-foreground hover:bg-accent-yellow/90 transition-colors duration-200 font-medium;
   }
   
   .card {
-    @apply rounded-lg border bg-card text-card-foreground shadow-sm;
+    @apply bg-card text-card-foreground rounded-lg border shadow-sm;
   }
   
   .input {
@@ -113,24 +109,23 @@
     text-wrap: balance;
   }
   
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out;
   }
   
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
+  .animate-slide-in-from-top {
+    animation: slide-in-from-top 0.5s ease-out;
   }
   
-  .gradient-text {
-    @apply bg-gradient-to-r from-rivaya-600 to-rivaya-400 bg-clip-text text-transparent;
+  .animate-slide-in-from-bottom {
+    animation: slide-in-from-bottom 0.5s ease-out;
   }
   
-  .glass {
-    @apply bg-white/10 backdrop-blur-md border border-white/20;
+  .animate-slide-in-from-left {
+    animation: slide-in-from-left 0.5s ease-out;
   }
   
-  .glass-dark {
-    @apply bg-black/10 backdrop-blur-md border border-white/10;
+  .animate-slide-in-from-right {
+    animation: slide-in-from-right 0.5s ease-out;
   }
 }

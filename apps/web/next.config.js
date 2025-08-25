@@ -1,7 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
-  serverExternalPackages: ['@prisma/client', 'bcryptjs'],
   images: {
     domains: [
       'localhost',
@@ -58,6 +56,22 @@ const nextConfig = {
         tls: false,
       };
     }
+    
+    // Add explicit path resolution for TypeScript aliases
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': require('path').resolve(__dirname, 'src'),
+      '@/components': require('path').resolve(__dirname, 'src/components'),
+      '@/lib': require('path').resolve(__dirname, 'src/lib'),
+      '@/types': require('path').resolve(__dirname, 'src/types'),
+      '@/utils': require('path').resolve(__dirname, 'src/utils'),
+      '@/hooks': require('path').resolve(__dirname, 'src/hooks'),
+      '@/stores': require('path').resolve(__dirname, 'src/stores'),
+      '@/styles': require('path').resolve(__dirname, 'src/styles'),
+      '@/constants': require('path').resolve(__dirname, 'src/constants'),
+      '@rivaya/shared': require('path').resolve(__dirname, '../../packages/shared/src'),
+    };
+    
     return config;
   },
 };

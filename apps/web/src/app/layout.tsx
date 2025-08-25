@@ -1,47 +1,39 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
+import type { Metadata } from 'next'
+import { Inter, Poppins } from 'next/font/google'
+import './globals.css'
+import { ThemeProvider } from '@/components/theme-provider'
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ 
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+})
+
+const poppins = Poppins({ 
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800'],
+  variable: '--font-poppins',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'RIVAYA - AI-Powered Group Management Platform',
-  description: 'Revolutionizing how families, alumni, SACCOs, and friends stay connected across any distance.',
-  keywords: ['group management', 'family', 'alumni', 'SACCO', 'community', 'AI'],
-  authors: [{ name: 'Vincent Wachira', url: 'https://github.com/VinceBiggz' }],
-  creator: 'Vincent Wachira',
-  publisher: 'RIVAYA',
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  metadataBase: new URL('https://rivaya.com'),
-  alternates: {
-    canonical: '/',
-  },
+  description: 'Revolutionizing how families, alumni, SACCOs, and communities stay connected across any distance with AI-powered group management.',
+  keywords: ['group management', 'AI', 'communities', 'families', 'alumni', 'SACCOs'],
+  authors: [{ name: 'RIVAYA Team' }],
+  creator: 'RIVAYA Team',
   openGraph: {
     type: 'website',
     locale: 'en_US',
     url: 'https://rivaya.com',
     title: 'RIVAYA - AI-Powered Group Management Platform',
-    description: 'Revolutionizing how families, alumni, SACCOs, and friends stay connected across any distance.',
+    description: 'Revolutionizing how families, alumni, SACCOs, and communities stay connected across any distance with AI-powered group management.',
     siteName: 'RIVAYA',
-    images: [
-      {
-        url: '/og-image.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'RIVAYA - AI-Powered Group Management Platform',
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'RIVAYA - AI-Powered Group Management Platform',
-    description: 'Revolutionizing how families, alumni, SACCOs, and friends stay connected across any distance.',
-    images: ['/og-image.jpg'],
-    creator: '@VinceBiggz',
+    description: 'Revolutionizing how families, alumni, SACCOs, and communities stay connected across any distance with AI-powered group management.',
   },
   robots: {
     index: true,
@@ -57,18 +49,25 @@ export const metadata: Metadata = {
   verification: {
     google: 'your-google-verification-code',
   },
-};
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        {children}
+      <body className={`${inter.variable} ${poppins.variable} font-sans antialiased`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
-  );
+  )
 }

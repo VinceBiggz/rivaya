@@ -1,0 +1,95 @@
+# Multi-stage production build for NestJS API
+FROM node:lts-slim AS base
+
+# Install system dependencies for Prisma
+RUN apt-get update && apt-get install -y \
+    openssl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Set working directory
+WORKDIR /app
+
+# Copy workspace configuration first
+COPY pnpm-workspace.yaml ./
+COPY package.json ./
+COPY pnpm-lock.yaml ./
+
+# Copy package.json files for all workspaces
+COPY apps/web/package.json ./apps/web/
+COPY apps/api/package.json ./apps/api/
+COPY packages/shared/package.json ./packages/shared/
+
+# Install dependencies (this creates the node_modules structure)
+RUN pnpm install --frozen-lockfile
+
+# Copy source code
+COPY . .
+
+# Build stage
+FROM base AS builder
+
+# Set environment variables for build
+ENV NODE_ENV=production
+
+# Generate Prisma client using workspace command
+RUN pnpm --filter @rivaya/api db:generate
+
+# Build the NestJS application using workspace command
+RUN pnpm --filter @rivaya/api build
+
+# Production stage
+FROM node:lts-slim AS runner
+
+# Install system dependencies for Prisma
+RUN apt-get update && apt-get install -y \
+    openssl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Set working directory
+WORKDIR /app
+
+# Copy workspace configuration
+COPY pnpm-workspace.yaml ./
+COPY package.json ./
+COPY pnpm-lock.yaml ./
+
+# Copy package.json files for all workspaces
+COPY apps/web/package.json ./apps/web/
+COPY apps/api/package.json ./apps/api/
+COPY packages/shared/package.json ./packages/shared/
+
+# Install only production dependencies
+RUN pnpm install --frozen-lockfile --prod
+
+# Copy built application from builder stage
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/apps/api/package.json ./apps/api/
+COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
+
+# Copy shared package
+COPY packages/shared ./packages/shared
+
+# Create non-root user
+RUN groupadd -r nestjs && useradd -r -g nestjs nestjs
+
+# Change ownership of the app directory
+RUN chown -R nestjs:nestjs /app
+USER nestjs
+
+# Expose port
+EXPOSE 3001
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3001
+
+# Start the production server
+CMD ["pnpm", "--filter", "@rivaya/api", "start:prod"]

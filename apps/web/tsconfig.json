@@ -30,7 +30,7 @@
       "@/stores/*": ["./src/stores/*"],
       "@/styles/*": ["./src/styles/*"],
       "@/constants/*": ["./src/constants/*"],
-      "@rivaya/shared": ["../shared/src"]
+      "@rivaya/shared": ["../../packages/shared/src"]
     }
   },
   "include": [
