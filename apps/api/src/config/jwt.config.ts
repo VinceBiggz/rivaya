@@ -6,3 +6,4 @@ export default registerAs('jwt', () => ({
   refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
   refreshSecret: process.env.JWT_REFRESH_SECRET || 'fallback-refresh-secret-change-in-production',
 }));
+

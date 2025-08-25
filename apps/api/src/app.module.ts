@@ -6,12 +6,14 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthController } from './health/health.controller';
 import { AuthModule } from './auth/auth.module';
+import { validationSchema } from './config/validation';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
+      validationSchema,
     }),
     ThrottlerModule.forRoot([
       {

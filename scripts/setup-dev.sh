@@ -69,63 +69,27 @@ check_node() {
 
 # Function to setup environment files
 setup_env_files() {
-    print_status "Setting up environment files..."
-    
-    # API environment
-    if [ ! -f "apps/api/.env" ]; then
-        cat > apps/api/.env << EOF
-# Database Configuration
-DATABASE_URL="postgresql://postgres:password@localhost:5432/rivaya?schema=public"
+  print_status "Setting up environment files..."
 
-# JWT Configuration
-JWT_SECRET="development-jwt-secret-change-in-production"
-JWT_EXPIRES_IN="7d"
-JWT_REFRESH_EXPIRES_IN="30d"
+  copy_env_file() {
+    local app_path=$1
+    local example_file=$2
+    local target_file=$3
 
-# Application Configuration
-PORT=3001
-NODE_ENV=development
-
-# CORS Configuration
-CORS_ORIGIN="http://localhost:3000,http://localhost:3002"
-
-# File Upload Configuration
-MAX_FILE_SIZE=5242880
-UPLOAD_PATH="./uploads"
-EOF
-        print_success "Created apps/api/.env"
+    if [ -f "$app_path/$example_file" ] && [ ! -f "$app_path/$target_file" ]; then
+      cp "$app_path/$example_file" "$app_path/$target_file"
+      print_success "Created $app_path/$target_file from $example_file"
+    elif [ -f "$app_path/$target_file" ]; then
+      print_warning "$app_path/$target_file already exists. Skipping."
     else
-        print_warning "apps/api/.env already exists"
+      print_error "Example file $app_path/$example_file not found. Please create it first."
     fi
-    
-    # Web environment
-    if [ ! -f "apps/web/.env.local" ]; then
-        cat > apps/web/.env.local << EOF
-# API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:3001
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+  }
 
-# Development Configuration
-NODE_ENV=development
-EOF
-        print_success "Created apps/web/.env.local"
-    else
-        print_warning "apps/web/.env.local already exists"
-    fi
-    
-    # Mobile environment
-    if [ ! -f "apps/mobile/.env" ]; then
-        cat > apps/mobile/.env << EOF
-# API Configuration
-EXPO_PUBLIC_API_URL=http://localhost:3001
-
-# Development Configuration
-NODE_ENV=development
-EOF
-        print_success "Created apps/mobile/.env"
-    else
-        print_warning "apps/mobile/.env already exists"
-    fi
+  # Create .env files from .env.example if they don't exist
+  copy_env_file "apps/api" ".env.example" ".env"
+  copy_env_file "apps/web" ".env.example" ".env.local"
+  copy_env_file "apps/mobile" ".env.example" ".env"
 }
 
 # Function to install dependencies

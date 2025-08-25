@@ -25,3 +25,4 @@ import { DatabaseHealthIndicator } from './database.health';
   exports: [DatabaseHealthIndicator],
 })
 export class DatabaseModule {}
+

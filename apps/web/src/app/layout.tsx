@@ -1,17 +1,16 @@
 import type { Metadata } from 'next'
-import { Inter, Poppins } from 'next/font/google'
+import localFont from 'next/font/local';
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 
-const inter = Inter({ 
-  subsets: ['latin'],
+const inter = localFont({
+  src: '../../public/fonts/Inter-Variable.woff2',
   variable: '--font-inter',
   display: 'swap',
 })
 
-const poppins = Poppins({ 
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700', '800'],
+const poppins = localFont({
+  src: '../../public/fonts/Poppins-Variable.woff2',
   variable: '--font-poppins',
   display: 'swap',
 })

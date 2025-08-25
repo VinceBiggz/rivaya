@@ -31,3 +31,4 @@ BEGIN
     RAISE NOTICE 'Rivaya database initialized successfully at %', NOW();
 END
 $$;
+

@@ -88,67 +88,9 @@ function Test-Node {
 function Set-EnvironmentFiles {
     Write-Status "Setting up environment files..."
     
-    # API environment
-    $apiEnvPath = "apps/api/.env"
-    if (-not (Test-Path $apiEnvPath)) {
-        @"
-# Database Configuration
-DATABASE_URL="postgresql://postgres:password@localhost:5432/rivaya?schema=public"
-
-# JWT Configuration
-JWT_SECRET="development-jwt-secret-change-in-production"
-JWT_EXPIRES_IN="7d"
-JWT_REFRESH_EXPIRES_IN="30d"
-
-# Application Configuration
-PORT=3001
-NODE_ENV=development
-
-# CORS Configuration
-CORS_ORIGIN="http://localhost:3000,http://localhost:3002"
-
-# File Upload Configuration
-MAX_FILE_SIZE=5242880
-UPLOAD_PATH="./uploads"
-"@ | Out-File -FilePath $apiEnvPath -Encoding UTF8
-        Write-Success "Created $apiEnvPath"
-    }
-    else {
-        Write-Warning "$apiEnvPath already exists"
-    }
-    
-    # Web environment
-    $webEnvPath = "apps/web/.env.local"
-    if (-not (Test-Path $webEnvPath)) {
-        @"
-# API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:3001
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-# Development Configuration
-NODE_ENV=development
-"@ | Out-File -FilePath $webEnvPath -Encoding UTF8
-        Write-Success "Created $webEnvPath"
-    }
-    else {
-        Write-Warning "$webEnvPath already exists"
-    }
-    
-    # Mobile environment
-    $mobileEnvPath = "apps/mobile/.env"
-    if (-not (Test-Path $mobileEnvPath)) {
-        @"
-# API Configuration
-EXPO_PUBLIC_API_URL=http://localhost:3001
-
-# Development Configuration
-NODE_ENV=development
-"@ | Out-File -FilePath $mobileEnvPath -Encoding UTF8
-        Write-Success "Created $mobileEnvPath"
-    }
-    else {
-        Write-Warning "$mobileEnvPath already exists"
-    }
+    Copy-EnvFile "apps/api" ".env.example" ".env"
+    Copy-EnvFile "apps/web" ".env.example" ".env.local"
+    Copy-EnvFile "apps/mobile" ".env.example" ".env"
 }
 
 # Function to install dependencies

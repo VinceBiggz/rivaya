@@ -1,40 +1,43 @@
 # Development Dockerfile for NestJS API
 FROM node:18-slim
-
-# Install system dependencies for Prisma
+# Install system dependencies for Prisma and curl for health checks
+# Install system dependencies for Prisma and curl for health checks
 RUN apt-get update && apt-get install -y \
     openssl \
     ca-certificates \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install pnpm
 RUN npm install -g pnpm
 
-# Set working directory
-WORKDIR /app
+# Set working directory to the API application directory within the monorepo
+WORKDIR /app/apps/api
 
 # Copy only package.json files first for efficient caching
-COPY pnpm-workspace.yaml ./
-COPY package.json ./
-COPY pnpm-lock.yaml* ./
-COPY apps/api/package.json ./apps/api/
-COPY packages/shared/package.json ./packages/shared/
+# Copy pnpm-workspace.yaml and root package files from the build context (monorepo root)
+COPY pnpm-workspace.yaml /app/
+COPY package.json /app/
+COPY pnpm-lock.yaml* /app/
+# Copy app-specific package.json files
+COPY apps/api/package.json ./
+COPY packages/shared/package.json ../../packages/shared/
 
 # Install dependencies at root level
-RUN pnpm install --frozen-lockfile
+RUN cd /app && pnpm install --frozen-lockfile
 
 # Copy entire monorepo source code (excluding node_modules via .dockerignore)
-COPY . .
+COPY . /app
 
 # Generate Prisma client (after schema is available)
-RUN cd apps/api && pnpm db:generate
+RUN pnpm db:generate
 
-# Expose port
+# Expose the application port
 EXPOSE 3001
 
 # Set environment variables
 ENV NODE_ENV=development
 ENV PORT=3001
 
-# Start the development server using pnpm workspace from root directory
-CMD ["pnpm", "--filter", "@rivaya/api", "start:dev"]
+# Start the development server using npx from root to find nest CLI
+CMD ["npx", "nest", "start", "--watch"]
