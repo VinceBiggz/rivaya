@@ -1,35 +1,94 @@
-# Development Dockerfile for Next.js web app
-FROM node:18-alpine
-# Install curl for health checks (if needed, though web apps usually don't have health checks inside the container)
-RUN apk add --no-cache curl
-# Install pnpm
-RUN npm install -g pnpm
+# =============================================================================
+# RIVAYA WEB - Multi-stage Dockerfile
+# =============================================================================
+# Development: Lightweight with volume mounts
+# Production: Optimized multi-stage build
+# =============================================================================
 
-# Set working directory to web app
-WORKDIR /app/apps/web
+# Base stage for shared dependencies
+FROM node:18-alpine AS base
+WORKDIR /app
 
-# Copy package.json files for dependency installation
-# Copy pnpm-workspace.yaml and root package files from the build context (monorepo root)
-COPY pnpm-workspace.yaml /app/
-COPY package.json /app/
-COPY pnpm-lock.yaml* /app/
+# Install pnpm globally
+RUN npm install -g pnpm@latest
+
+# Copy workspace configuration
+COPY pnpm-workspace.yaml ./
+COPY package.json ./
+COPY pnpm-lock.yaml ./
+
 # Copy app-specific package.json files
-COPY apps/web/package.json ./
-COPY packages/shared/package.json ../../packages/shared/
+COPY apps/web/package.json ./apps/web/
+COPY packages/shared/package.json ./packages/shared/
 
-# Install dependencies directly in the app directory
-RUN cd /app && pnpm install --frozen-lockfile
+# Install dependencies (this layer will be cached)
+RUN pnpm install --frozen-lockfile
+
+# Development stage
+FROM base AS development
+WORKDIR /app
 
 # Copy source code
-COPY . /app
+COPY . .
 
 # Expose port
 EXPOSE 3000
 
-# Set environment variables
-ENV NODE_ENV=development
-ENV PORT=3000
-ENV NEXT_TELEMETRY_DISABLED=1
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000 || exit 1
 
-# Start the development server
-CMD ["pnpm", "dev"]
+# Start development server
+CMD ["pnpm", "--filter", "@rivaya/web", "dev"]
+
+# Builder stage for production
+FROM base AS builder
+WORKDIR /app
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN pnpm --filter @rivaya/web build
+
+# Production stage
+FROM node:18-alpine AS production
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm@latest
+
+# Copy package files
+COPY pnpm-workspace.yaml ./
+COPY package.json ./
+COPY pnpm-lock.yaml ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/shared/package.json ./packages/shared/
+
+# Install only production dependencies
+RUN pnpm install --frozen-lockfile --prod
+
+# Copy built application from builder stage
+COPY --from=builder /app/apps/web/.next ./apps/web/.next
+COPY --from=builder /app/apps/web/public ./apps/web/public
+COPY --from=builder /app/apps/web/next.config.js ./apps/web/
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+
+# Change ownership
+RUN chown -R nextjs:nodejs /app
+USER nextjs
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000 || exit 1
+
+# Start production server
+CMD ["pnpm", "--filter", "@rivaya/web", "start"]
+

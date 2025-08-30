@@ -1,43 +1,110 @@
-# Development Dockerfile for NestJS API
-FROM node:18-slim
-# Install system dependencies for Prisma and curl for health checks
-# Install system dependencies for Prisma and curl for health checks
-RUN apt-get update && apt-get install -y \
+# =============================================================================
+# RIVAYA API - Multi-stage Dockerfile
+# =============================================================================
+# Development: Lightweight with volume mounts
+# Production: Optimized multi-stage build
+# =============================================================================
+
+# Base stage for shared dependencies
+FROM node:18-alpine AS base
+WORKDIR /app
+
+# Install system dependencies for Prisma compatibility
+RUN apk add --no-cache \
     openssl \
     ca-certificates \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+    curl
 
-# Install pnpm
-RUN npm install -g pnpm
+# Install pnpm globally
+RUN npm install -g pnpm@latest
 
-# Set working directory to the API application directory within the monorepo
-WORKDIR /app/apps/api
+# Copy workspace configuration
+COPY pnpm-workspace.yaml ./
+COPY package.json ./
+COPY pnpm-lock.yaml ./
 
-# Copy only package.json files first for efficient caching
-# Copy pnpm-workspace.yaml and root package files from the build context (monorepo root)
-COPY pnpm-workspace.yaml /app/
-COPY package.json /app/
-COPY pnpm-lock.yaml* /app/
 # Copy app-specific package.json files
-COPY apps/api/package.json ./
-COPY packages/shared/package.json ../../packages/shared/
+COPY apps/api/package.json ./apps/api/
+COPY packages/shared/package.json ./packages/shared/
 
-# Install dependencies at root level
-RUN cd /app && pnpm install --frozen-lockfile
+# Install dependencies (this layer will be cached)
+RUN pnpm install --frozen-lockfile
 
-# Copy entire monorepo source code (excluding node_modules via .dockerignore)
-COPY . /app
+# Development stage
+FROM base AS development
+WORKDIR /app
 
-# Generate Prisma client (after schema is available)
-RUN pnpm db:generate
+# Copy source code
+COPY . .
 
-# Expose the application port
+# Generate Prisma client
+RUN pnpm --filter @rivaya/api db:generate
+
+# Expose port
 EXPOSE 3001
 
-# Set environment variables
-ENV NODE_ENV=development
-ENV PORT=3001
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3001/health || exit 1
 
-# Start the development server using pnpm exec to correctly find nest CLI
-CMD ["pnpm", "exec", "nest", "start", "--watch"]
+# Start development server
+CMD ["pnpm", "--filter", "@rivaya/api", "start:dev"]
+
+# Builder stage for production
+FROM base AS builder
+WORKDIR /app
+
+# Copy source code
+COPY . .
+
+# Generate Prisma client
+RUN pnpm --filter @rivaya/api db:generate
+
+# Build the application
+RUN pnpm --filter @rivaya/api build
+
+# Production stage
+FROM node:18-alpine AS production
+WORKDIR /app
+
+# Install system dependencies for Prisma compatibility
+RUN apk add --no-cache \
+    openssl \
+    ca-certificates \
+    curl
+
+# Install pnpm
+RUN npm install -g pnpm@latest
+
+# Copy package files
+COPY pnpm-workspace.yaml ./
+COPY package.json ./
+COPY pnpm-lock.yaml ./
+COPY apps/api/package.json ./apps/api/
+COPY packages/shared/package.json ./packages/shared/
+
+# Install only production dependencies
+RUN pnpm install --frozen-lockfile --prod
+
+# Copy built application from builder stage
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nestjs -u 1001
+
+# Change ownership
+RUN chown -R nestjs:nodejs /app
+USER nestjs
+
+# Expose port
+EXPOSE 3001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3001/health || exit 1
+
+# Start production server
+CMD ["pnpm", "--filter", "@rivaya/api", "start:prod"]
